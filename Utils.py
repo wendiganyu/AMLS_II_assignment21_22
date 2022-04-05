@@ -22,7 +22,7 @@ def img_center_crop(image, target_height, target_width):
     return img_crop
 
 
-def img_random_crop(image, target_height, target_width):
+def img_random_crop(image, target_height, target_width, top_coord = None, left_coord = None):
     """
     Crop an input image randomly. For data enhancement in data training.
     :param image: input image as an array.
@@ -33,9 +33,10 @@ def img_random_crop(image, target_height, target_width):
     org_img_height, org_img_width = image.shape[:2]
 
     # Randomly set the top and left coordinates.
-    top_coord = random.randint(0, org_img_height - target_height)
-    left_coord = random.randint(0, org_img_width - target_width)
+    if ((top_coord is None) and (left_coord is None)):
+        top_coord = random.randint(0, org_img_height - target_height)
+        left_coord = random.randint(0, org_img_width - target_width)
 
     img_crop = image[top_coord:top_coord + target_height, left_coord: left_coord + target_width]
 
-    return img_crop
+    return img_crop, top_coord, left_coord
