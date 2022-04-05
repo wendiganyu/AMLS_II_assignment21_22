@@ -139,3 +139,32 @@ class Discriminator(nn.Module):
         Y = self.classifier(Y)
 
         return Y
+
+class ContentLoss(nn.Module):
+    """
+    Content loss calculation based on a VGG19 network already trained on ImageNet.
+    """
+
+    def __init__(self):
+        super(ContentLoss, self).__init__()
+        # Load VGG19 trained on ImageNet.
+        vgg19 = models.vgg19(pretrained=True).eval()
+        # Extract 36-th layer's output of vgg19 for content loss.
+        self.feature_extractor = nn.Sequential(*list(vgg19.features.children())[:36])
+
+        for parameter in self.feature_extractor.parameters():
+            parameter.requires_grad = False
+
+        # The constant values of mean and the standard are the parameters of VGG19 used on ImageNet.
+        self.register_buffer("mean", torch.Tensor([0.485, 0.456, 0.406]).view(1,3,1,1))
+        self.register_buffer("std", torch.Tensor([0.229, 0.224, 0.225]).view(1,3,1,1))
+
+    def forward(self, super_res_img, high_res_img):
+        # Normalization
+        super_res_img = super_res_img.sub(self.mean).div(self.std)
+        high_res_img = high_res_img.sub(self.mean).div(self.std)
+
+        # Calculate the content loss
+        loss = F.l1_loss(self.feature_extractor(super_res_img), self.feature_extractor(high_res_img))
+
+        return loss
