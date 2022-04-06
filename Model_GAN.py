@@ -71,7 +71,7 @@ class Generator(nn.Module):
 
         # Upsample block sequence
         upsample_blk_seq = []
-        for _ in range(2):
+        for _ in range(1):
             upsample_blk_seq.append(UpSampleBlk(input_channels=64))
         self.upsample_blk_seq = nn.Sequential(*upsample_blk_seq)
 
