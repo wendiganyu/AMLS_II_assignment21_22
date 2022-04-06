@@ -94,7 +94,7 @@ class Discriminator(nn.Module):
         super(Discriminator, self).__init__()
         self.feature_extractor = nn.Sequential(
             # input size: 3 * 96 * 96
-            nn.Conv2d(3, 64, kernel_size=3, stide=1, padding=1),
+            nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1),
             nn.LeakyReLU(0.2, True),
 
             nn.Conv2d(64, 64, kernel_size=3, stride=2, padding=1), # Now:64 * 48 * 48
@@ -127,7 +127,7 @@ class Discriminator(nn.Module):
         )
 
         self.classifier = nn.Sequential(
-            nn.Linear(512 * 6 * 6, 1024),
+            nn.Linear(4147200, 1024),
             nn.LeakyReLU(0.2, True),
             nn.Linear(1024, 1)
 
@@ -135,7 +135,7 @@ class Discriminator(nn.Module):
 
     def forward(self, input_x):
         Y = self.feature_extractor(input_x)
-        Y = torch.flatter(Y, 1)
+        Y = torch.flatten(Y, 1)
         Y = self.classifier(Y)
 
         return Y

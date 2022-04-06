@@ -40,3 +40,4 @@ def img_random_crop(image, target_height, target_width, top_coord = None, left_c
     img_crop = image[top_coord:top_coord + target_height, left_coord: left_coord + target_width]
 
     return img_crop, top_coord, left_coord
+
