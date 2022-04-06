@@ -2,6 +2,7 @@
 Run this file to train the GAN model for image super resolution.
 """
 import os
+
 import shutil
 import time
 from enum import Enum
@@ -247,4 +248,5 @@ def train_GAN_model():
 #     return psnres.avg
 
 if __name__ == '__main__':
+    torch.cuda.set_device(3)
     train_GAN_model()
