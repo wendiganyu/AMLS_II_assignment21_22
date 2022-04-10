@@ -50,7 +50,7 @@ def rotate_target_img(folder_path):
     Retrieve the dataset files and rotate an image by 90 degree if its height > width.
     :param folder_path: target folder's path.
     """
-    img_file_paths = [folder_path+img_file_name for img_file_name in os.listdir(folder_path)]
+    img_file_paths = [os.path.join(folder_path, img_file_name) for img_file_name in os.listdir(folder_path)]
 
     for path in img_file_paths:
         img = cv2.imread(path)
@@ -100,9 +100,9 @@ def check_img_size_min(folder_path):
         img = cv2.imread(path)
 
         h,w,c = img.shape
-        print('width: ', w)
-        print('height: ', h)
-        print('channel: ', c)
+        # print('width: ', w)
+        # print('height: ', h)
+        # print('channel: ', c)
 
         if h < min_width:
             min_height = h
@@ -113,7 +113,12 @@ def check_img_size_min(folder_path):
     print("min width: ", min_width)
 
 if __name__ == '__main__':
-    rotate_target_img("Datasets/valid/HR/")
-    # check_img_size_min("Datasets/train/HR")
+    rotate_dataset()
+    # train_HR: min_height:1332, min_width:2040
+    # valid_HR: min_height:1356, min_width:2040
+    # test_HR: min_height:1152, min_width:2040
+    check_img_size_min("Datasets/train/HR")
+    check_img_size_min("Datasets/valid/HR")
+    check_img_size_min("Datasets/test/HR")
 
 
