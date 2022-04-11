@@ -198,7 +198,7 @@ def train_GAN_model():
             dis_SR_prob = torch.sigmoid(torch.mean(SR_output))
 
             # Calculate related metrics
-            print("LR_imgs_Variable_size: ", LR_imgs.size(0))
+            # print("LR_imgs_Variable_size: ", LR_imgs.size(0))
 
             psnr = 10.0 * torch.log10(1.0 / psnr_loss_criterion(SR_imgs, HR_imgs))
             avg_meter_pixel_loss.update(pixel_loss.item(), LR_imgs.size(0))
