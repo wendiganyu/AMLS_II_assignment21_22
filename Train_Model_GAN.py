@@ -47,7 +47,7 @@ def train_GAN_model():
     avg_meter_psnr = AverageMeter("PSNR", ":4.2f")
     avg_meter_list = [avg_meter_pixel_loss, avg_meter_content_loss, avg_meter_adversarial_loss, avg_meter_dis_HR_prob,
                       avg_meter_dis_SR_prob, avg_meter_psnr]
-    progress = ProgressMeter(train_batch_size, avg_meter_list, prefix=f"Epoch: [{epoch_num + 1}]")
+    progress = ProgressMeter(train_batch_size, avg_meter_list, prefix=f"Epoch: [{epoch_num}]")
     # -------------------------------------------------------------------------------------------------
     # Create PyTorch Dataloaders
     img_crop_height = 648
