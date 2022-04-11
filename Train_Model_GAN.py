@@ -50,15 +50,14 @@ def train_GAN_model():
     progress = ProgressMeter(train_batch_size, avg_meter_list, prefix=f"Epoch: [{epoch_num + 1}]")
     # -------------------------------------------------------------------------------------------------
     # Create PyTorch Dataloaders
-    img_crop_height = 720
-    img_crop_width = 720
+    img_crop_height = 1152
+    img_crop_width = 2040
     train_datasets = DataLoad.DIV2KDatasets("Datasets/train/LR_bicubic_X2", "Datasets/train/HR", img_crop_height,
                                             img_crop_width, upscale_factor=2, random_crop_trigger=True)
     valid_datasets = DataLoad.DIV2KDatasets("Datasets/valid/LR_bicubic_X2", "Datasets/valid/HR", img_crop_height,
                                             img_crop_width, upscale_factor=2, random_crop_trigger=False)
     test_datasets = DataLoad.DIV2KDatasets("Datasets/test/LR_bicubic_X2", "Datasets/test/HR", img_crop_height,
                                            img_crop_width, upscale_factor=2, random_crop_trigger=False)
-
 
     train_loader = DataLoader(train_datasets,
                               batch_size=train_batch_size,
@@ -223,13 +222,20 @@ def train_GAN_model():
                 writer.add_scalar("Train/Probability of D(SR)", dis_SR_prob.item(), num_iter)
                 writer.add_scalar("Train/PSNR", psnr.item(), num_iter)
                 progress.display(batch_idx)
-        # ------------------------------------------------------------------------------------------------
-        # Validate
+    # ------------------------------------------------------------------------------------------------
+    # Validate
+    PSNR_valid = valid_test(generator, valid_loader, psnr_loss_criterion, epoch, writer, device, "valid", log_freq)
+    PSNR_test = valid_test(generator, test_loader, psnr_loss_criterion, epoch, writer, device, "test", log_freq)
+
+    # Update learning rate scheduler
+    dis_scheduler.step()
+    gen_scheduler.step()
+
 
     return
 
 
-def valid_test(model, data_loader, psnr_criterion, epoch, writer, device, mode, print_freq):
+def valid_test(model, data_loader, psnr_criterion, epoch, writer, device, mode, log_freq):
     """
     Use the trained model to do the validate or test process.
     :param model: The trained model used.
@@ -239,11 +245,11 @@ def valid_test(model, data_loader, psnr_criterion, epoch, writer, device, mode, 
     :param writer: Summary writer for writing log information.
     :param device: CPU or GPU.
     :param mode: "valid" or "test".
-    :param print_freq: The frequency of writing the log files.
+    :param log_freq: The frequency of writing the log files.
     :return: Average PSNR performance.
     """
     avg_meter_PSNR = AverageMeter("PSNR", ":4.2f")
-    progress = ProgressMeter(len(data_loader), [avg_meter_PSNR], prefix = f'{mode}: ')
+    progress = ProgressMeter(len(data_loader), [avg_meter_PSNR], prefix=f'{mode}: ')
 
     # Switch evaluation mode
     model.eval()
@@ -259,14 +265,14 @@ def valid_test(model, data_loader, psnr_criterion, epoch, writer, device, mode, 
 
             # Convert RGB tensor to Y_CB_CR tensor
             # Pytorch tensor to numpy array image
-            SR_nparray = SR_imgs.squeeze_(0).permute(1,2,0).mul_(255).clamp_(0,255).cpu().numpy().astype("uint8")
+            SR_nparray = SR_imgs.squeeze_(0).permute(1, 2, 0).mul_(255).clamp_(0, 255).cpu().numpy().astype("uint8")
             SR_nparray = SR_nparray.astype(np.float32) / 255.
             # Convert RGB format to ycbcr format
             SR_YCbCr_nparray = Utils.img_rgb2ycbcr(SR_nparray)
             SR_YCbCr_tensor = F.to_tensor(SR_YCbCr_nparray).to(device).unsqueeze_(0)
 
             # Pytorch tensor to numpy array image
-            HR_nparray = HR_imgs.squeeze_(0).permute(1,2,0).mul_(255).clamp_(0,255).cpu().numpy().astype("uint8")
+            HR_nparray = HR_imgs.squeeze_(0).permute(1, 2, 0).mul_(255).clamp_(0, 255).cpu().numpy().astype("uint8")
             HR_nparray = HR_nparray.astype(np.float32) / 255.
             # Convert RGB format to ycbcr format
             HR_YCbCr_nparray = Utils.img_rgb2ycbcr(HR_nparray)
@@ -276,12 +282,10 @@ def valid_test(model, data_loader, psnr_criterion, epoch, writer, device, mode, 
             psnr = 10. * torch.log10(1. / psnr_criterion(SR_YCbCr_tensor, HR_YCbCr_tensor))
             avg_meter_PSNR.update(psnr.item(), LR_imgs.size(0))
 
-
             # Record training log information
 
-            if batch_idx % print_freq == 0:
+            if batch_idx % log_freq == 0:
                 progress.display(batch_idx)
-
 
     if mode == "valid":
         writer.add_scalar("Valid/PSNR", avg_meter_PSNR.avg, epoch + 1)
@@ -289,6 +293,7 @@ def valid_test(model, data_loader, psnr_criterion, epoch, writer, device, mode, 
         writer.add_scalar("Test/PSNR", avg_meter_PSNR.avg, epoch + 1)
 
     return avg_meter_PSNR.avg
+
 
 # ----------------------------------------------------------------------------------
 # Helper functions for model training visualization from
