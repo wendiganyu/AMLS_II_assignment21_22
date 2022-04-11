@@ -13,13 +13,15 @@ import numpy as np
 import torch
 from torch import nn
 from torch import optim
-from torch.cuda import amp
 from torch.optim import lr_scheduler
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from torch.autograd import Variable
+from torchvision.transforms import functional as F
+
 from tqdm.auto import tqdm
 import Model_GAN
+import Utils
 
 
 def train_GAN_model():
@@ -34,17 +36,36 @@ def train_GAN_model():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     epoch_num = 100
     Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.Tensor
+    train_batch_size = 1
+    log_freq = 10
+
+    avg_meter_pixel_loss = AverageMeter("Pixel loss", ":6.6f")
+    avg_meter_content_loss = AverageMeter("Content loss", ":6.6f")
+    avg_meter_adversarial_loss = AverageMeter("Adversarial loss", ":6.6f")
+    avg_meter_dis_HR_prob = AverageMeter("Probability of Discriminator(HR)", ":6.6f")
+    avg_meter_dis_SR_prob = AverageMeter("Probability of Discriminator(SR)", ":6.6f")
+    avg_meter_psnr = AverageMeter("PSNR", ":4.2f")
+    avg_meter_list = [avg_meter_pixel_loss, avg_meter_content_loss, avg_meter_adversarial_loss, avg_meter_dis_HR_prob,
+                      avg_meter_dis_SR_prob, avg_meter_psnr]
+    progress = ProgressMeter(train_batch_size, avg_meter_list, prefix=f"Epoch: [{epoch_num + 1}]")
     # -------------------------------------------------------------------------------------------------
     # Create PyTorch Dataloaders
     img_crop_height = 720
     img_crop_width = 720
-    train_datasets = DataLoad.DIV2KDatasets("Datasets/train/LR_bicubic_X2", "Datasets/train/HR", img_crop_height, img_crop_width, upscale_factor=2, random_crop_trigger=True)
-    valid_datasets = DataLoad.DIV2KDatasets("Datasets/valid/LR_bicubic_X2", "Datasets/valid/HR", img_crop_height, img_crop_width, upscale_factor=2, random_crop_trigger=False)
-    test_datasets = DataLoad.DIV2KDatasets("Datasets/test/LR_bicubic_X2", "Datasets/test/HR", img_crop_height, img_crop_width, upscale_factor=2, random_crop_trigger=False)
+    train_datasets = DataLoad.DIV2KDatasets("Datasets/train/LR_bicubic_X2", "Datasets/train/HR", img_crop_height,
+                                            img_crop_width, upscale_factor=2, random_crop_trigger=True)
+    valid_datasets = DataLoad.DIV2KDatasets("Datasets/valid/LR_bicubic_X2", "Datasets/valid/HR", img_crop_height,
+                                            img_crop_width, upscale_factor=2, random_crop_trigger=False)
+    test_datasets = DataLoad.DIV2KDatasets("Datasets/test/LR_bicubic_X2", "Datasets/test/HR", img_crop_height,
+                                           img_crop_width, upscale_factor=2, random_crop_trigger=False)
+
 
     train_loader = DataLoader(train_datasets,
-                              batch_size=1,
+                              batch_size=train_batch_size,
                               shuffle=True)
+
+    train_loader_len = len(train_loader)
+
     valid_loader = DataLoader(valid_datasets,
                               batch_size=1,
                               shuffle=False)
@@ -88,14 +109,14 @@ def train_GAN_model():
     # -------------------------------------------------------------------------------------------------
     # Define scheduler
     # Multiply LR by gamma=0.1 every epoch_num//2 epochs.
-    dis_scheduler = lr_scheduler.StepLR(dis_optimizer, step_size=epoch_num//2, gamma=0.1)
-    gen_scheduler = lr_scheduler.StepLR(gen_optimizer, step_size=epoch_num//2, gamma=0.1)
+    dis_scheduler = lr_scheduler.StepLR(dis_optimizer, step_size=epoch_num // 2, gamma=0.1)
+    gen_scheduler = lr_scheduler.StepLR(gen_optimizer, step_size=epoch_num // 2, gamma=0.1)
 
     # -------------------------------------------------------------------------------------------------
     # Create a folder to store some SR result samples.
     model_name = "SRGAN"
     sample_folder = os.path.join("samples", model_name)
-    result_folder = os.path.join("results",model_name)
+    result_folder = os.path.join("results", model_name)
     if not os.path.exists(sample_folder):
         os.makedirs(sample_folder)
     if not os.path.exists(result_folder):
@@ -103,7 +124,7 @@ def train_GAN_model():
 
     # -------------------------------------------------------------------------------------------------
     # Create summary writers.
-    writer = SummaryWriter(os.path.join("sample", "logs",model_name))
+    writer = SummaryWriter(os.path.join("sample", "logs", model_name))
 
     # Train
     for epoch in range(epoch_num):
@@ -146,7 +167,7 @@ def train_GAN_model():
             # Add two losses of discriminator
             dis_loss_total = dis_loss_HR + dis_loss_SR
 
-            #-------------------------------------------
+            # -------------------------------------------
             # Train generator
             # Close the updating of discriminator first
             for para in discriminator.parameters():
@@ -172,82 +193,104 @@ def train_GAN_model():
 
             gen_optimizer.step()
 
-
+            # -------------------------------------------------------------------------------------------
             # Calculate scores of HR and SR images on discriminator
             dis_HR_prob = torch.sigmoid(torch.mean(HR_output))
             dis_SR_prob = torch.sigmoid(torch.mean(SR_output))
 
-            # Accuracy
+            # Calculate related metrics
+            print("LR_imgs_Variable_size: ", LR_imgs.size(0))
+
             psnr = 10.0 * torch.log10(1.0 / psnr_loss_criterion(SR_imgs, HR_imgs))
-            print("PSNR:", psnr)
+            avg_meter_pixel_loss.update(pixel_loss.item(), LR_imgs.size(0))
+            print("pixel_loss item: ", pixel_loss.item())
+            avg_meter_content_loss.update(content_loss.item(), LR_imgs.size(0))
+            avg_meter_adversarial_loss.update(adversarial_loss.item(), LR_imgs.size(0))
+            avg_meter_dis_HR_prob.update(dis_HR_prob.item(), LR_imgs.size(0))
+            avg_meter_dis_SR_prob.update(dis_SR_prob.item(), LR_imgs.size(0))
+            avg_meter_psnr.update(psnr.item(), LR_imgs.size(0))
 
-        #------------------------------------------------------------------------------------------------
+            # -------------------------------------------------------------------------------------------
+            # Record training log information with log frequency
+            if batch_idx % log_freq == 0:
+                num_iter = batch_idx + epoch * train_loader_len
+                writer.add_scalar("Train/Discriminator Loss", dis_loss_total.item(), num_iter)
+                writer.add_scalar("Train/Generator Loss", gen_loss_total.item(), num_iter)
+                writer.add_scalar("Train/Pixel Loss", pixel_loss.item(), num_iter)
+                writer.add_scalar("Train/Content Loss", content_loss.item(), num_iter)
+                writer.add_scalar("Train/Adversarial Loss", adversarial_loss.item(), num_iter)
+                writer.add_scalar("Train/Probability of D(HR)", dis_HR_prob.item(), num_iter)
+                writer.add_scalar("Train/Probability of D(SR)", dis_SR_prob.item(), num_iter)
+                writer.add_scalar("Train/PSNR", psnr.item(), num_iter)
+                progress.display(batch_idx)
+        # ------------------------------------------------------------------------------------------------
         # Validate
-
-
-
-
-
-
-
-
-
-
 
     return
 
-#
-# def validate(model, valid_loader, psnr_criterion, epoch, writer, device, mode):
-#
-#     # Put the model in verification mode
-#     model.eval()
-#
-#     with torch.no_grad():
-#
-#         for batch_idx, imgs in enumerate(tqdm(valid_loader)):
-#             # Configure input
-#             LR_imgs = imgs["LR"].to(device)
-#             HR_imgs = imgs["HR"].to(device)
-#
-#             SR_imgs = model(LR_imgs)
-#
-#             # Convert RGB tensor to Y tensor
-#             sr_image = imgproc.tensor2image(sr, range_norm=False, half=True)
-#             sr_image = sr_image.astype(np.float32) / 255.
-#             sr_y_image = imgproc.rgb2ycbcr(sr_image, use_y_channel=True)
-#             sr_y_tensor = imgproc.image2tensor(sr_y_image, range_norm=False, half=True).to(config.device).unsqueeze_(0)
-#
-#             hr_image = imgproc.tensor2image(hr, range_norm=False, half=True)
-#             hr_image = hr_image.astype(np.float32) / 255.
-#             hr_y_image = imgproc.rgb2ycbcr(hr_image, use_y_channel=True)
-#             hr_y_tensor = imgproc.image2tensor(hr_y_image, range_norm=False, half=True).to(config.device).unsqueeze_(0)
-#
-#             # measure accuracy and record loss
-#             psnr = 10. * torch.log10(1. / psnr_criterion(sr_y_tensor, hr_y_tensor))
-#             psnres.update(psnr.item(), lr.size(0))
-#
-#
-#             # Record training log information
-#             if batch_index % config.print_frequency == 0:
-#                 progress.display(batch_index)
-#
-#             # Preload the next batch of data
-#             batch_data = valid_prefetcher.next()
-#
-#             # After a batch of data is calculated, add 1 to the number of batches
-#             batch_index += 1
-#
-#
-#     if mode == "Valid":
-#         writer.add_scalar("Valid/PSNR", psnres.avg, epoch + 1)
-#     elif mode == "Test":
-#         writer.add_scalar("Test/PSNR", psnres.avg, epoch + 1)
-#     else:
-#         raise ValueError("Unsupported mode, please use `Valid` or `Test`.")
-#
-#     return psnres.avg
 
-#----------------------------------------------------------------------------------
+def valid_test(model, data_loader, psnr_criterion, epoch, writer, device, mode, print_freq):
+    """
+    Use the trained model to do the validate or test process.
+    :param model: The trained model used.
+    :param data_loader: Valid data loader or test data loader.
+    :param psnr_criterion: Calculate the PSNR between SR image and HR image.
+    :param epoch: Current number of epoch.
+    :param writer: Summary writer for writing log information.
+    :param device: CPU or GPU.
+    :param mode: "valid" or "test".
+    :param print_freq: The frequency of writing the log files.
+    :return: Average PSNR performance.
+    """
+    avg_meter_PSNR = AverageMeter("PSNR", ":4.2f")
+    progress = ProgressMeter(len(data_loader), [avg_meter_PSNR], prefix = f'{mode}: ')
+
+    # Switch evaluation mode
+    model.eval()
+
+    with torch.no_grad():
+
+        for batch_idx, imgs in enumerate(tqdm(valid_loader)):
+            # Configure input
+            LR_imgs = imgs["LR"].to(device)
+            HR_imgs = imgs["HR"].to(device)
+
+            SR_imgs = model(LR_imgs)
+
+            # Convert RGB tensor to Y_CB_CR tensor
+            # Pytorch tensor to numpy array image
+            SR_nparray = SR_imgs.squeeze_(0).permute(1,2,0).mul_(255).clamp_(0,255).cpu().numpy().astype("uint8")
+            SR_nparray = SR_nparray.astype(np.float32) / 255.
+            # Convert RGB format to ycbcr format
+            SR_YCbCr_nparray = Utils.img_rgb2ycbcr(SR_nparray)
+            SR_YCbCr_tensor = F.to_tensor(SR_YCbCr_nparray).to(device).unsqueeze_(0)
+
+            # Pytorch tensor to numpy array image
+            HR_nparray = HR_imgs.squeeze_(0).permute(1,2,0).mul_(255).clamp_(0,255).cpu().numpy().astype("uint8")
+            HR_nparray = HR_nparray.astype(np.float32) / 255.
+            # Convert RGB format to ycbcr format
+            HR_YCbCr_nparray = Utils.img_rgb2ycbcr(HR_nparray)
+            HR_YCbCr_tensor = F.to_tensor(HR_YCbCr_nparray).to(device).unsqueeze_(0)
+
+            # measure accuracy and record loss
+            psnr = 10. * torch.log10(1. / psnr_criterion(SR_YCbCr_tensor, HR_YCbCr_tensor))
+            avg_meter_PSNR.update(psnr.item(), LR_imgs.size(0))
+
+
+            # Record training log information
+
+            if batch_idx % print_freq == 0:
+                progress.display(batch_idx)
+
+
+    if mode == "valid":
+        writer.add_scalar("Valid/PSNR", avg_meter_PSNR.avg, epoch + 1)
+    elif mode == "test":
+        writer.add_scalar("Test/PSNR", avg_meter_PSNR.avg, epoch + 1)
+
+    return avg_meter_PSNR.avg
+
+# ----------------------------------------------------------------------------------
 # Helper functions for model training visualization from
 # "https://github.com/pytorch/examples/blob/master/imagenet/main.py"
 class Summary(Enum):
@@ -317,6 +360,7 @@ class ProgressMeter(object):
         num_digits = len(str(num_batches // 1))
         fmt = "{:" + str(num_digits) + "d}"
         return "[" + fmt + "/" + fmt.format(num_batches) + "]"
+
 
 if __name__ == '__main__':
     torch.cuda.set_device(3)

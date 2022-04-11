@@ -112,6 +112,26 @@ def check_img_size_min(folder_path):
     print("min height: ", min_height)
     print("min width: ", min_width)
 
+def img_rgb2ycbcr(image, sep_y_channel):
+    """
+    Simulate rgb2ycbcr function in Matlab to transform the image from RGB space to YCbCr space.
+    :param image: input RGB image.
+    :param sep_y_channel: It True, extract Y channel separately.
+    :return: Image as YCbCr format.
+    """
+
+    if sep_y_channel:
+        output = np.dot(image, [65.481, 128.553, 24.966]) + 16.0
+    else:
+        output = np.matmal(image, [[65.481, -37.797, 112.0], [128.553, -74.203, -93.786], [24.966, 112.0, -18.214]]) + [16, 128, 128]
+
+    output /= 255.
+    output = output.astype(np.float32)
+
+    return output
+
+
+
 if __name__ == '__main__':
     rotate_dataset()
     # train_HR: min_height:1332, min_width:2040
