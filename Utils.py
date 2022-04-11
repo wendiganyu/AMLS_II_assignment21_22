@@ -104,7 +104,7 @@ def check_img_size_min(folder_path):
         # print('height: ', h)
         # print('channel: ', c)
 
-        if h < min_width:
+        if h < min_height:
             min_height = h
         if w < min_width:
             min_width = w
@@ -133,10 +133,10 @@ def img_rgb2ycbcr(image, sep_y_channel):
 
 
 if __name__ == '__main__':
-    rotate_dataset()
-    # train_HR: min_height:1332, min_width:2040
-    # valid_HR: min_height:1356, min_width:2040
-    # test_HR: min_height:1152, min_width:2040
+    # rotate_dataset()
+    # train_HR: min_height:648, min_width:2040
+    # valid_HR: min_height:816, min_width:2040
+    # test_HR: min_height:1068, min_width:2040
     check_img_size_min("Datasets/train/HR")
     check_img_size_min("Datasets/valid/HR")
     check_img_size_min("Datasets/test/HR")

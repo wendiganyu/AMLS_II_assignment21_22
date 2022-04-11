@@ -202,7 +202,7 @@ def train_GAN_model():
 
             psnr = 10.0 * torch.log10(1.0 / psnr_loss_criterion(SR_imgs, HR_imgs))
             avg_meter_pixel_loss.update(pixel_loss.item(), LR_imgs.size(0))
-            print("pixel_loss item: ", pixel_loss.item())
+            print("pixel loss: ", pixel_loss.item())
             avg_meter_content_loss.update(content_loss.item(), LR_imgs.size(0))
             avg_meter_adversarial_loss.update(adversarial_loss.item(), LR_imgs.size(0))
             avg_meter_dis_HR_prob.update(dis_HR_prob.item(), LR_imgs.size(0))
