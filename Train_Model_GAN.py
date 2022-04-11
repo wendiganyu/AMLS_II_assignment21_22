@@ -368,5 +368,5 @@ class ProgressMeter(object):
 
 
 if __name__ == '__main__':
-    torch.cuda.set_device(3)
+    torch.cuda.set_device(2)
     train_GAN_model()
