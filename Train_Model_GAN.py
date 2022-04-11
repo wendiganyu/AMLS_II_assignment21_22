@@ -303,14 +303,14 @@ def valid_test(model, data_loader, psnr_criterion, epoch, writer, device, mode, 
             SR_nparray = SR_imgs.squeeze_(0).permute(1, 2, 0).mul_(255).clamp_(0, 255).cpu().numpy().astype("uint8")
             SR_nparray = SR_nparray.astype(np.float32) / 255.
             # Convert RGB format to ycbcr format
-            SR_YCbCr_nparray = Utils.img_rgb2ycbcr(SR_nparray)
+            SR_YCbCr_nparray = Utils.img_rgb2ycbcr(SR_nparray, sep_y_channel=True)
             SR_YCbCr_tensor = F.to_tensor(SR_YCbCr_nparray).to(device).unsqueeze_(0)
 
             # Pytorch tensor to numpy array image
             HR_nparray = HR_imgs.squeeze_(0).permute(1, 2, 0).mul_(255).clamp_(0, 255).cpu().numpy().astype("uint8")
             HR_nparray = HR_nparray.astype(np.float32) / 255.
             # Convert RGB format to ycbcr format
-            HR_YCbCr_nparray = Utils.img_rgb2ycbcr(HR_nparray)
+            HR_YCbCr_nparray = Utils.img_rgb2ycbcr(HR_nparray, sep_y_channel=True)
             HR_YCbCr_tensor = F.to_tensor(HR_YCbCr_nparray).to(device).unsqueeze_(0)
 
             # measure accuracy and record loss
