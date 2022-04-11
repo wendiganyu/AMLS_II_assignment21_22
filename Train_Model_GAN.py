@@ -36,18 +36,13 @@ def train_GAN_model():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     epoch_num = 100
     Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.Tensor
-    train_batch_size = 1
+    train_batch_size = 2
     log_freq = 10
 
-    avg_meter_pixel_loss = AverageMeter("Pixel loss", ":6.6f")
-    avg_meter_content_loss = AverageMeter("Content loss", ":6.6f")
-    avg_meter_adversarial_loss = AverageMeter("Adversarial loss", ":6.6f")
-    avg_meter_dis_HR_prob = AverageMeter("Probability of Discriminator(HR)", ":6.6f")
-    avg_meter_dis_SR_prob = AverageMeter("Probability of Discriminator(SR)", ":6.6f")
-    avg_meter_psnr = AverageMeter("PSNR", ":4.2f")
-    avg_meter_list = [avg_meter_pixel_loss, avg_meter_content_loss, avg_meter_adversarial_loss, avg_meter_dis_HR_prob,
-                      avg_meter_dis_SR_prob, avg_meter_psnr]
-    progress = ProgressMeter(train_batch_size, avg_meter_list, prefix=f"Epoch: [{epoch_num}]")
+    # Set a seed to store the states files of model.
+    seed = torch.initial_seed()
+    print(f'Use seed : {seed}')
+
     # -------------------------------------------------------------------------------------------------
     # Create PyTorch Dataloaders
     img_crop_height = 648
@@ -123,10 +118,24 @@ def train_GAN_model():
 
     # -------------------------------------------------------------------------------------------------
     # Create summary writers.
-    writer = SummaryWriter(os.path.join("sample", "logs", model_name))
+    writer = SummaryWriter(os.path.join("samples", "logs", model_name))
 
     # Train
     for epoch in range(epoch_num):
+        # -------------------------------------------------------------------------------------
+        # Set average meters and progress printer
+        avg_meter_pixel_loss = AverageMeter("Pixel loss", ":6.6f")
+        avg_meter_content_loss = AverageMeter("Content loss", ":6.6f")
+        avg_meter_adversarial_loss = AverageMeter("Adversarial loss", ":6.6f")
+        avg_meter_dis_HR_prob = AverageMeter("Probability of Discriminator(HR)", ":6.6f")
+        avg_meter_dis_SR_prob = AverageMeter("Probability of Discriminator(SR)", ":6.6f")
+        avg_meter_psnr = AverageMeter("PSNR", ":4.2f")
+        avg_meter_list = [avg_meter_pixel_loss, avg_meter_content_loss, avg_meter_adversarial_loss,
+                          avg_meter_dis_HR_prob,
+                          avg_meter_dis_SR_prob, avg_meter_psnr]
+        progress = ProgressMeter(train_loader_len, avg_meter_list, prefix=f"Epoch: [{epoch + 1}]")
+        # -------------------------------------------------------------------------------------
+
         generator.train()
         discriminator.train()
 
@@ -222,14 +231,40 @@ def train_GAN_model():
                 writer.add_scalar("Train/Probability of D(SR)", dis_SR_prob.item(), num_iter)
                 writer.add_scalar("Train/PSNR", psnr.item(), num_iter)
                 progress.display(batch_idx)
-    # ------------------------------------------------------------------------------------------------
-    # Validate
-    PSNR_valid = valid_test(generator, valid_loader, psnr_loss_criterion, epoch, writer, device, "valid", log_freq)
-    PSNR_test = valid_test(generator, test_loader, psnr_loss_criterion, epoch, writer, device, "test", log_freq)
+        # ------------------------------------------------------------------------------------------------
+        # Validate and test
+        PSNR_valid = valid_test(generator, valid_loader, psnr_loss_criterion, epoch, writer, device, "valid", log_freq)
+        PSNR_test = valid_test(generator, test_loader, psnr_loss_criterion, epoch, writer, device, "test", log_freq)
 
-    # Update learning rate scheduler
-    dis_scheduler.step()
-    gen_scheduler.step()
+        # Update learning rate scheduler
+        dis_scheduler.step()
+        gen_scheduler.step()
+
+        # ------------------------------------------------------------------------------------------------
+        # Save the model with the highest test PSNR and save the model of last epoch
+        if PSNR_test > best_psnr:
+            best_psnr = max(PSNR_test, best_psnr)
+
+            torch.save({"epoch": epoch + 1,
+                        "test_PSNR": PSNR_test,
+                        "best_PSNR": best_psnr,
+                        "state_dict": generator.state_dict(),
+                        "optimizer": gen_optimizer.state_dict(),
+                        "scheduler": gen_scheduler.state_dict(),
+                        "seed": seed
+                        },
+                       os.path.join(result_folder, f"gen_bestPSNR_seed{seed}.pth.tar"))
+
+            torch.save({"epoch": epoch + 1,
+                        "test_PSNR": PSNR_test,
+                        "best_PSNR": best_psnr,
+                        "state_dict": discriminator.state_dict(),
+                        "optimizer": dis_optimizer.state_dict(),
+                        "scheduler": dis_scheduler.state_dict(),
+                        "seed": seed
+                        },
+                       os.path.join(result_folder, f"dis_bestPSNR_seed{seed}.pth.tar"))
+
 
 
     return
@@ -256,7 +291,7 @@ def valid_test(model, data_loader, psnr_criterion, epoch, writer, device, mode, 
 
     with torch.no_grad():
 
-        for batch_idx, imgs in enumerate(tqdm(valid_loader)):
+        for batch_idx, imgs in enumerate(tqdm(data_loader)):
             # Configure input
             LR_imgs = imgs["LR"].to(device)
             HR_imgs = imgs["HR"].to(device)
