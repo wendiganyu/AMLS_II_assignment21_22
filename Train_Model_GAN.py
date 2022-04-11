@@ -50,8 +50,8 @@ def train_GAN_model():
     progress = ProgressMeter(train_batch_size, avg_meter_list, prefix=f"Epoch: [{epoch_num + 1}]")
     # -------------------------------------------------------------------------------------------------
     # Create PyTorch Dataloaders
-    img_crop_height = 1152
-    img_crop_width = 2040
+    img_crop_height = 1024
+    img_crop_width = 1024
     train_datasets = DataLoad.DIV2KDatasets("Datasets/train/LR_bicubic_X2", "Datasets/train/HR", img_crop_height,
                                             img_crop_width, upscale_factor=2, random_crop_trigger=True)
     valid_datasets = DataLoad.DIV2KDatasets("Datasets/valid/LR_bicubic_X2", "Datasets/valid/HR", img_crop_height,
