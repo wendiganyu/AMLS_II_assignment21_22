@@ -42,9 +42,9 @@ class DIV2KDatasets(Dataset):
         :return: The pair of LR image and HR image as a dictionary.
         """
         # Read the image pixels and transform to range [0,1]
-        HR_image = cv2.imread(self.HR_file_names[index], cv2.IMREAD_UNCHANGED).astype(np.float32) / 255
-        LR_image = cv2.imread(self.LR_file_names[index], cv2.IMREAD_UNCHANGED).astype(np.float32) / 255
-        print("HR image shape:", HR_image.shape)
+        HR_image = cv2.imread(self.HR_file_names[index]).astype(np.float32) / 255
+        LR_image = cv2.imread(self.LR_file_names[index]).astype(np.float32) / 255
+        print(f"HR image shape of {self.HR_file_names[index]}:", HR_image.shape)
 
         LR_img_crop_height = self.HR_img_crop_height // self.upscale_factor
         LR_img_crop_width = self.HR_img_crop_width // self.upscale_factor
