@@ -121,13 +121,13 @@ class Discriminator(nn.Module):
             nn.BatchNorm2d(512),
             nn.LeakyReLU(0.2, True),
 
-            nn.Conv2d(512, 512, kernel_size=3, stride=2, padding=1), # Now: 512 * 72 * 127
+            nn.Conv2d(512, 512, kernel_size=3, stride=2, padding=1), # Now: 512 * 72 * 128
             nn.BatchNorm2d(512),
             nn.LeakyReLU(0.2, True)
         )
 
         self.classifier = nn.Sequential(
-            nn.Linear(512*72*127, 1024),
+            nn.Linear(512*72*128, 1024),
             nn.LeakyReLU(0.2, True),
             nn.Linear(1024, 1)
 
