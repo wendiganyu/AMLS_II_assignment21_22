@@ -45,8 +45,8 @@ def train_GAN_model():
 
     # -------------------------------------------------------------------------------------------------
     # Create PyTorch Dataloaders
-    img_crop_height = 648
-    img_crop_width = 1296
+    img_crop_height = 180
+    img_crop_width = 180
     train_datasets = DataLoad.DIV2KDatasets("Datasets/train/LR_bicubic_X2", "Datasets/train/HR", img_crop_height,
                                             img_crop_width, upscale_factor=2, random_crop_trigger=True)
     valid_datasets = DataLoad.DIV2KDatasets("Datasets/valid/LR_bicubic_X2", "Datasets/valid/HR", img_crop_height,
@@ -242,28 +242,28 @@ def train_GAN_model():
 
         # ------------------------------------------------------------------------------------------------
         # Save the model with the highest test PSNR and save the model of last epoch
-        # if PSNR_test > best_psnr:
-        #     best_psnr = max(PSNR_test, best_psnr)
-        #
-        #     torch.save({"epoch": epoch + 1,
-        #                 "test_PSNR": PSNR_test,
-        #                 "best_PSNR": best_psnr,
-        #                 "state_dict": generator.state_dict(),
-        #                 "optimizer": gen_optimizer.state_dict(),
-        #                 "scheduler": gen_scheduler.state_dict(),
-        #                 "seed": seed
-        #                 },
-        #                os.path.join(result_folder, f"gen_bestPSNR_seed{seed}.pth.tar"))
-        #
-        #     torch.save({"epoch": epoch + 1,
-        #                 "test_PSNR": PSNR_test,
-        #                 "best_PSNR": best_psnr,
-        #                 "state_dict": discriminator.state_dict(),
-        #                 "optimizer": dis_optimizer.state_dict(),
-        #                 "scheduler": dis_scheduler.state_dict(),
-        #                 "seed": seed
-        #                 },
-        #                os.path.join(result_folder, f"dis_bestPSNR_seed{seed}.pth.tar"))
+        if PSNR_test > best_psnr:
+            best_psnr = max(PSNR_test, best_psnr)
+
+            torch.save({"epoch": epoch + 1,
+                        "test_PSNR": PSNR_test,
+                        "best_PSNR": best_psnr,
+                        "state_dict": generator.state_dict(),
+                        "optimizer": gen_optimizer.state_dict(),
+                        "scheduler": gen_scheduler.state_dict(),
+                        "seed": seed
+                        },
+                       os.path.join(result_folder, f"gen_bestPSNR_seed{seed}.pth.tar"))
+
+            torch.save({"epoch": epoch + 1,
+                        "test_PSNR": PSNR_test,
+                        "best_PSNR": best_psnr,
+                        "state_dict": discriminator.state_dict(),
+                        "optimizer": dis_optimizer.state_dict(),
+                        "scheduler": dis_scheduler.state_dict(),
+                        "seed": seed
+                        },
+                       os.path.join(result_folder, f"dis_bestPSNR_seed{seed}.pth.tar"))
 
 
 

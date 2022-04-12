@@ -93,41 +93,41 @@ class Discriminator(nn.Module):
     def __init__(self):
         super(Discriminator, self).__init__()
         self.feature_extractor = nn.Sequential(
-            # input size: 3 * 648 * 1296
+            # input size: 3 * 180 * 180
             nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1),
             nn.LeakyReLU(0.2, True),
 
-            nn.Conv2d(64, 64, kernel_size=3, stride=2, padding=1), # Now:64 * 324 * 648
+            nn.Conv2d(64, 64, kernel_size=3, stride=2, padding=1), # Now:64 * 90 * 90
             nn.BatchNorm2d(64),
             nn.LeakyReLU(0.2, True),
 
-            nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1), # Now: 128 * 324 * 648
+            nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1), # Now: 128 * 90 * 90
             nn.BatchNorm2d(128),
             nn.LeakyReLU(0.2, True),
 
-            nn.Conv2d(128, 128, kernel_size=3, stride=2, padding=1), # Now: 128 * 162 * 324
+            nn.Conv2d(128, 128, kernel_size=3, stride=2, padding=1), # Now: 128 * 45 * 45
             nn.BatchNorm2d(128),
             nn.LeakyReLU(0.2, True),
 
-            nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1), # Now: 256 * 162 * 324
+            nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1), # Now: 256 * 45 * 45
             nn.BatchNorm2d(256),
             nn.LeakyReLU(0.2, True),
 
-            nn.Conv2d(256, 256, kernel_size=3, stride=2, padding=1), # Now: 256 * 81 * 162
+            nn.Conv2d(256, 256, kernel_size=3, stride=2, padding=1), # Now: 256 * 23 * 23
             nn.BatchNorm2d(256),
             nn.LeakyReLU(0.2, True),
 
-            nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1), # Now : 512 * 81 * 162
+            nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1), # Now : 512 * 23 * 23
             nn.BatchNorm2d(512),
             nn.LeakyReLU(0.2, True),
 
-            nn.Conv2d(512, 512, kernel_size=3, stride=2, padding=1), # Now: 512 * 41 * 81
+            nn.Conv2d(512, 512, kernel_size=3, stride=2, padding=1), # Now: 512 * 12 * 12
             nn.BatchNorm2d(512),
             nn.LeakyReLU(0.2, True)
         )
 
         self.classifier = nn.Sequential(
-            nn.Linear(512*41*81, 1024),
+            nn.Linear(512*12*12, 1024),
             nn.LeakyReLU(0.2, True),
             nn.Linear(1024, 1)
 
