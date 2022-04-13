@@ -70,10 +70,10 @@ def train_SRResnet_model(LR_train_folder_path, LR_valid_folder_path, LR_test_fol
     train_loader_len = len(train_loader)
 
     valid_loader = DataLoader(valid_datasets,
-                              batch_size=10,
+                              batch_size=1,
                               shuffle=False)
     test_loader = DataLoader(test_datasets,
-                             batch_size=10,
+                             batch_size=1,
                              shuffle=False)
 
     # -------------------------------------------------------------------------------------------------
