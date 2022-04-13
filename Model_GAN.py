@@ -53,7 +53,7 @@ class UpSampleBlk(nn.Module):
 
 class Generator(nn.Module):
     def __init__(self, upscale_factor):
-        super(Generator,self).__init__()
+        super(Generator,self, upscale_factor).__init__()
 
         # First convolutional block
         self.conv_blk1 = nn.Sequential(
