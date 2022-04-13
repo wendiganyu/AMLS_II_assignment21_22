@@ -25,14 +25,14 @@ import Model_GAN
 import Utils
 
 
-def train_SRResnet_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_path, upscale_factor):
+def train_SRResnet_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_path, upscale_factor, track_name):
     """
-
-    :param LR_train_folder_path:
-    :param LR_valid_folder_path:
-    :param LR_test_folder_path:
-    :param upscale_factor:
-    :return:
+    Train the SRResnet model.
+    :param LR_train_folder_path: The dataset folder path of the LR image for train.
+    :param LR_valid_folder_path: The dataset folder path of the LR image for valid.
+    :param LR_test_folder_path: The dataset folder path of the LR image for test.
+    :param upscale_factor: Upscale factor from 2 to 4.
+    :param track_name: The track name of the LR images.
     """
     # -------------------------------------------------------------------------------------------------
     # Initial settings
@@ -45,7 +45,7 @@ def train_SRResnet_model(LR_train_folder_path, LR_valid_folder_path, LR_test_fol
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     epoch_num = 300
     Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.Tensor
-    train_batch_size = 5
+    train_batch_size = 50
     log_freq = 10
 
     # Set a seed to store the states files of model.
@@ -56,12 +56,12 @@ def train_SRResnet_model(LR_train_folder_path, LR_valid_folder_path, LR_test_fol
     # Create PyTorch Dataloaders
     img_crop_height = 180
     img_crop_width = 180
-    train_datasets = DataLoad.DIV2KDatasets("Datasets/train/LR_bicubic_X2", "Datasets/train/HR", img_crop_height,
-                                            img_crop_width, upscale_factor=2, random_crop_trigger=True)
-    valid_datasets = DataLoad.DIV2KDatasets("Datasets/valid/LR_bicubic_X2", "Datasets/valid/HR", img_crop_height,
-                                            img_crop_width, upscale_factor=2, random_crop_trigger=False)
-    test_datasets = DataLoad.DIV2KDatasets("Datasets/test/LR_bicubic_X2", "Datasets/test/HR", img_crop_height,
-                                           img_crop_width, upscale_factor=2, random_crop_trigger=False)
+    train_datasets = DataLoad.DIV2KDatasets(LR_train_folder_path, "Datasets/train/HR", img_crop_height,
+                                            img_crop_width, upscale_factor=upscale_factor, random_crop_trigger=True)
+    valid_datasets = DataLoad.DIV2KDatasets(LR_valid_folder_path, "Datasets/valid/HR", img_crop_height,
+                                            img_crop_width, upscale_factor=upscale_factor, random_crop_trigger=False)
+    test_datasets = DataLoad.DIV2KDatasets(LR_test_folder_path, "Datasets/test/HR", img_crop_height,
+                                           img_crop_width, upscale_factor=upscale_factor, random_crop_trigger=False)
 
     train_loader = DataLoader(train_datasets,
                               batch_size=train_batch_size,
@@ -70,15 +70,15 @@ def train_SRResnet_model(LR_train_folder_path, LR_valid_folder_path, LR_test_fol
     train_loader_len = len(train_loader)
 
     valid_loader = DataLoader(valid_datasets,
-                              batch_size=1,
+                              batch_size=5,
                               shuffle=False)
     test_loader = DataLoader(test_datasets,
-                             batch_size=1,
+                             batch_size=5,
                              shuffle=False)
 
     # -------------------------------------------------------------------------------------------------
     # Load model
-    generator = Model_GAN.Generator().to(device) # SRResnet model is the same as the generator in GAN network
+    generator = Model_GAN.Generator(upscale_factor=upscale_factor).to(device) # SRResnet model is the same as the generator in GAN network
 
     # Total params of the generator
     total_params = sum(p.numel() for p in generator.parameters())
@@ -106,8 +106,8 @@ def train_SRResnet_model(LR_train_folder_path, LR_valid_folder_path, LR_test_fol
     # -------------------------------------------------------------------------------------------------
     # Create a folder to store some SR result samples.
     model_name = "SRResnet"
-    sample_folder = os.path.join("samples", model_name)
-    result_folder = os.path.join("results", model_name)
+    sample_folder = os.path.join("summary_writer_records", model_name, track_name, "logs")
+    result_folder = os.path.join("results", model_name, track_name)
     if not os.path.exists(sample_folder):
         os.makedirs(sample_folder)
     if not os.path.exists(result_folder):
@@ -115,7 +115,8 @@ def train_SRResnet_model(LR_train_folder_path, LR_valid_folder_path, LR_test_fol
 
     # -------------------------------------------------------------------------------------------------
     # Create summary writers.
-    writer = SummaryWriter(os.path.join("samples", "logs", model_name))
+    writer = SummaryWriter(os.path.join("summary_writer_records", model_name, track_name, "logs"))
+
 
     # Train
     for epoch in range(epoch_num):
@@ -370,5 +371,5 @@ if __name__ == '__main__':
         "UnknownX4": 4
     }
     upscale_factor = dic_upscale_factor[args.track]
-    train_SRResnet_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_path, upscale_factor)
+    train_SRResnet_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_path, upscale_factor, args.track)
 

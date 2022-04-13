@@ -24,13 +24,14 @@ import Model_GAN
 import Utils
 
 
-def train_GAN_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_path, upscale_factor):
+def train_GAN_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_path, upscale_factor, track_name):
     """
     Train the SRGAN model.
     :param LR_train_folder_path: The dataset folder path of the LR image for train.
     :param LR_valid_folder_path: The dataset folder path of the LR image for valid.
     :param LR_test_folder_path: The dataset folder path of the LR image for test.
     :param upscale_factor: Upscale factor from 2 to 4.
+    :param track_name: The track name of the LR images.
     """
     # -------------------------------------------------------------------------------------------------
     # Initial settings
@@ -76,7 +77,7 @@ def train_GAN_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_p
 
     # -------------------------------------------------------------------------------------------------
     # Load model
-    generator = Model_GAN.Generator().to(device)
+    generator = Model_GAN.Generator(upscale_factor=upscale_factor).to(device)
     discriminator = Model_GAN.Discriminator().to(device)
 
     # Total params of the generator
@@ -110,14 +111,14 @@ def train_GAN_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_p
     # -------------------------------------------------------------------------------------------------
     # Define scheduler
     # Multiply LR by gamma=0.1 every epoch_num//2 epochs.
-    dis_scheduler = lr_scheduler.StepLR(dis_optimizer, step_size=epoch_num // 2, gamma=0.1)
-    gen_scheduler = lr_scheduler.StepLR(gen_optimizer, step_size=epoch_num // 2, gamma=0.1)
+    dis_scheduler = lr_scheduler.StepLR(dis_optimizer, step_size=epoch_num // 5, gamma=0.1)
+    gen_scheduler = lr_scheduler.StepLR(gen_optimizer, step_size=epoch_num // 5, gamma=0.1)
 
     # -------------------------------------------------------------------------------------------------
     # Create a folder to store some SR result samples.
     model_name = "SRGAN"
-    sample_folder = os.path.join("samples", model_name)
-    result_folder = os.path.join("results", model_name)
+    sample_folder = os.path.join("summary_writer_records", model_name, track_name, "logs")
+    result_folder = os.path.join("results", model_name, track_name)
     if not os.path.exists(sample_folder):
         os.makedirs(sample_folder)
     if not os.path.exists(result_folder):
@@ -125,7 +126,7 @@ def train_GAN_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_p
 
     # -------------------------------------------------------------------------------------------------
     # Create summary writers.
-    writer = SummaryWriter(os.path.join("samples", "logs", model_name))
+    writer = SummaryWriter(os.path.join("summary_writer_records", model_name, track_name, "logs"))
 
     # Train
     for epoch in range(epoch_num):
@@ -455,4 +456,4 @@ if __name__ == '__main__':
         "UnknownX4": 4
     }
     upscale_factor = dic_upscale_factor[args.track]
-    train_GAN_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_path, upscale_factor)
+    train_GAN_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_path, upscale_factor, args.track)
