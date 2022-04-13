@@ -33,11 +33,15 @@ class ResidualBlock(nn.Module):
         return out
 
 class UpSampleBlk(nn.Module):
-    def __init__(self, input_channels):
+    def __init__(self, input_channels, upscale_factor):
         super(UpSampleBlk,self).__init__()
+        if upscale_factor == 3:
+            PixelShuffle_param = 3
+        else: # upscale_factor == 2 or upscale_factor == 4
+            PixelShuffle_param = 2
         self.up_sample_blk = nn.Sequential(
-            nn.Conv2d(input_channels, input_channels * 4, kernel_size=3, stride=1, padding=1),
-            nn.PixelShuffle(2),
+            nn.Conv2d(input_channels, input_channels * PixelShuffle_param * PixelShuffle_param, kernel_size=3, stride=1, padding=1),
+            nn.PixelShuffle(PixelShuffle_param),
             nn.PReLU()
         )
 
@@ -48,7 +52,7 @@ class UpSampleBlk(nn.Module):
 
 
 class Generator(nn.Module):
-    def __init__(self):
+    def __init__(self, upscale_factor):
         super(Generator,self).__init__()
 
         # First convolutional block
@@ -59,7 +63,7 @@ class Generator(nn.Module):
 
         # A sequence of residual blocks.
         residual_blk_sequence = []
-        for _ in range(16):
+        for _ in range(50):
             residual_blk_sequence.append(ResidualBlock(64))
         self.residual_blk_sequence = nn.Sequential(*residual_blk_sequence)
 
@@ -71,7 +75,14 @@ class Generator(nn.Module):
 
         # Upsample block sequence
         upsample_blk_seq = []
-        for _ in range(1):
+
+        # If upscale_factor ==2 or upscale_factor == 3, use only one unsampling block.
+        if upscale_factor == 4:
+            iter = 2
+        else:
+            iter = 1
+
+        for _ in range(iter):
             upsample_blk_seq.append(UpSampleBlk(input_channels=64))
         self.upsample_blk_seq = nn.Sequential(*upsample_blk_seq)
 

@@ -6,7 +6,7 @@ import os
 import shutil
 import time
 from enum import Enum
-
+import argparse
 import DataLoad
 
 import numpy as np
@@ -24,7 +24,14 @@ import Model_GAN
 import Utils
 
 
-def train_GAN_model():
+def train_GAN_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_path, upscale_factor):
+    """
+    Train the SRGAN model.
+    :param LR_train_folder_path: The dataset folder path of the LR image for train.
+    :param LR_valid_folder_path: The dataset folder path of the LR image for valid.
+    :param LR_test_folder_path: The dataset folder path of the LR image for test.
+    :param upscale_factor: Upscale factor from 2 to 4.
+    """
     # -------------------------------------------------------------------------------------------------
     # Initial settings
 
@@ -36,10 +43,10 @@ def train_GAN_model():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     epoch_num = 300
     Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.Tensor
-    train_batch_size = 5
+    train_batch_size = 20
     log_freq = 10
 
-    # Set a seed to store the states files of model.
+    # Set a seed to store the model params into a file with unique name.
     seed = torch.initial_seed()
     print(f'Use seed : {seed}')
 
@@ -47,12 +54,12 @@ def train_GAN_model():
     # Create PyTorch Dataloaders
     img_crop_height = 180
     img_crop_width = 180
-    train_datasets = DataLoad.DIV2KDatasets("Datasets/train/LR_bicubic_X2", "Datasets/train/HR", img_crop_height,
-                                            img_crop_width, upscale_factor=2, random_crop_trigger=True)
-    valid_datasets = DataLoad.DIV2KDatasets("Datasets/valid/LR_bicubic_X2", "Datasets/valid/HR", img_crop_height,
-                                            img_crop_width, upscale_factor=2, random_crop_trigger=False)
-    test_datasets = DataLoad.DIV2KDatasets("Datasets/test/LR_bicubic_X2", "Datasets/test/HR", img_crop_height,
-                                           img_crop_width, upscale_factor=2, random_crop_trigger=False)
+    train_datasets = DataLoad.DIV2KDatasets(LR_train_folder_path, "Datasets/train/HR", img_crop_height,
+                                            img_crop_width, upscale_factor=upscale_factor, random_crop_trigger=True)
+    valid_datasets = DataLoad.DIV2KDatasets(LR_valid_folder_path, "Datasets/valid/HR", img_crop_height,
+                                            img_crop_width, upscale_factor=upscale_factor, random_crop_trigger=False)
+    test_datasets = DataLoad.DIV2KDatasets(LR_test_folder_path, "Datasets/test/HR", img_crop_height,
+                                           img_crop_width, upscale_factor=upscale_factor, random_crop_trigger=False)
 
     train_loader = DataLoader(train_datasets,
                               batch_size=train_batch_size,
@@ -61,10 +68,10 @@ def train_GAN_model():
     train_loader_len = len(train_loader)
 
     valid_loader = DataLoader(valid_datasets,
-                              batch_size=1,
+                              batch_size=5,
                               shuffle=False)
     test_loader = DataLoader(test_datasets,
-                             batch_size=1,
+                             batch_size=5,
                              shuffle=False)
 
     # -------------------------------------------------------------------------------------------------
@@ -265,8 +272,6 @@ def train_GAN_model():
                         },
                        os.path.join(result_folder, f"dis_bestPSNR_seed{seed}.pth.tar"))
 
-
-
     return
 
 
@@ -403,5 +408,51 @@ class ProgressMeter(object):
 
 
 if __name__ == '__main__':
-    torch.cuda.set_device(2)
-    train_GAN_model()
+    torch.cuda.set_device(2)  # Choose the number of GPU on which we train the model.
+    # ---------------------------------------------------------------------------------------------------
+    # Get params from command lines.
+    p = argparse.ArgumentParser()
+    p.add_argument("--track", type=str)
+    # p.add_argument("--epochNum", default=200, type=int)
+    args = p.parse_args()
+
+    # --------------------------------------------------------------------------------------------------
+    # Create the dataset paths of different tracks
+    train_LR_track_paths = ["Datasets/train/LR_bicubic_X2", "Datasets/train/LR_bicubic_X3",
+                            "Datasets/train/LR_bicubic_X4",
+                            "Datasets/train/LR_unknown_X2", "Datasets/train/LR_unknown_X3",
+                            "Datasets/train/LR_unknown_X4"]
+
+    valid_LR_track_paths = ["Datasets/valid/LR_bicubic_X2", "Datasets/valid/LR_bicubic_X3",
+                            "Datasets/valid/LR_bicubic_X4",
+                            "Datasets/valid/LR_unknown_X2", "Datasets/valid/LR_unknown_X3",
+                            "Datasets/valid/LR_unknown_X4"]
+
+    test_LR_track_paths = ["Datasets/test/LR_bicubic_X2", "Datasets/test/LR_bicubic_X3", "Datasets/test/LR_bicubic_X4",
+                           "Datasets/test/LR_unknown_X2", "Datasets/test/LR_unknown_X3", "Datasets/test/LR_unknown_X4"]
+
+    # Create a dictionary for mapping of the command and the indices of the dataset folder paths.
+    dic_dataset_path = {
+        "BicubicX2":0,
+        "BicubicX3":1,
+        "BicubicX4":2,
+        "UnknownX2":3,
+        "UnknownX3":4,
+        "UnknownX4":5
+    }
+    index = dic_dataset_path[args.track]
+    LR_train_folder_path = train_LR_track_paths[index]
+    LR_valid_folder_path = valid_LR_track_paths[index]
+    LR_test_folder_path = test_LR_track_paths[index]
+
+    # Create a dictionary to map the command with the upscale factor value.
+    dic_upscale_factor = {
+        "BicubicX2": 2,
+        "BicubicX3": 3,
+        "BicubicX4": 4,
+        "UnknownX2": 2,
+        "UnknownX3": 3,
+        "UnknownX4": 4
+    }
+    upscale_factor = dic_upscale_factor[args.track]
+    train_GAN_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_path, upscale_factor)

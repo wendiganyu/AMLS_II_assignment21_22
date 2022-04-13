@@ -1,6 +1,7 @@
 """
 Run this file to train the GAN model for image super resolution.
 """
+import argparse
 import os
 
 import shutil
@@ -24,7 +25,15 @@ import Model_GAN
 import Utils
 
 
-def train_SRResnet_model():
+def train_SRResnet_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_path, upscale_factor):
+    """
+
+    :param LR_train_folder_path:
+    :param LR_valid_folder_path:
+    :param LR_test_folder_path:
+    :param upscale_factor:
+    :return:
+    """
     # -------------------------------------------------------------------------------------------------
     # Initial settings
 
@@ -315,4 +324,51 @@ class ProgressMeter(object):
 
 if __name__ == '__main__':
     torch.cuda.set_device(2)
-    train_SRResnet_model()
+    # ---------------------------------------------------------------------------------------------------
+    # Get params from command lines.
+    p = argparse.ArgumentParser()
+    p.add_argument("--track", type=str)
+    # p.add_argument("--epochNum", default=200, type=int)
+    args = p.parse_args()
+
+    # --------------------------------------------------------------------------------------------------
+    # Create the dataset paths of different tracks
+    train_LR_track_paths = ["Datasets/train/LR_bicubic_X2", "Datasets/train/LR_bicubic_X3",
+                            "Datasets/train/LR_bicubic_X4",
+                            "Datasets/train/LR_unknown_X2", "Datasets/train/LR_unknown_X3",
+                            "Datasets/train/LR_unknown_X4"]
+
+    valid_LR_track_paths = ["Datasets/valid/LR_bicubic_X2", "Datasets/valid/LR_bicubic_X3",
+                            "Datasets/valid/LR_bicubic_X4",
+                            "Datasets/valid/LR_unknown_X2", "Datasets/valid/LR_unknown_X3",
+                            "Datasets/valid/LR_unknown_X4"]
+
+    test_LR_track_paths = ["Datasets/test/LR_bicubic_X2", "Datasets/test/LR_bicubic_X3", "Datasets/test/LR_bicubic_X4",
+                           "Datasets/test/LR_unknown_X2", "Datasets/test/LR_unknown_X3", "Datasets/test/LR_unknown_X4"]
+
+    # Create a dictionary for mapping of the command and the indices of the dataset folder paths.
+    dic_dataset_path = {
+        "BicubicX2": 0,
+        "BicubicX3": 1,
+        "BicubicX4": 2,
+        "UnknownX2": 3,
+        "UnknownX3": 4,
+        "UnknownX4": 5
+    }
+    index = dic_dataset_path[args.track]
+    LR_train_folder_path = train_LR_track_paths[index]
+    LR_valid_folder_path = valid_LR_track_paths[index]
+    LR_test_folder_path = test_LR_track_paths[index]
+
+    # Create a dictionary to map the command with the upscale factor value.
+    dic_upscale_factor = {
+        "BicubicX2": 2,
+        "BicubicX3": 3,
+        "BicubicX4": 4,
+        "UnknownX2": 2,
+        "UnknownX3": 3,
+        "UnknownX4": 4
+    }
+    upscale_factor = dic_upscale_factor[args.track]
+    train_SRResnet_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_path, upscale_factor)
+
