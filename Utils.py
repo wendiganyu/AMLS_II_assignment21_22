@@ -45,6 +45,21 @@ def img_random_crop(image, target_height, target_width, top_coord = None, left_c
 
     return img_crop, top_coord, left_coord
 
+def img_custom_crop(image, target_height, target_width, top_coord, left_coord):
+    """
+    Crop an input image with custom. For the visualization to check the results after model is trained.
+    :param image: input image as an array.
+    :param target_height: height of cropped image.
+    :param target_width: width of cropped image.
+    :param top_coord: Top coordinate of the cropped image.
+    :param left_coord: Left cooredinate of the cropped image.
+    :return: Cropped image as an array.
+    """
+
+    img_crop = image[top_coord:top_coord + target_height, left_coord: left_coord + target_width]
+
+    return img_crop
+
 def rotate_target_img(folder_path):
     """
     Retrieve the dataset files and rotate an image by 90 degree if its height > width.
