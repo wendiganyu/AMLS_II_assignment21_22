@@ -44,8 +44,8 @@ def train_GAN_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_p
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     epoch_num = 300
     Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.Tensor
-    train_batch_size = 200
-    log_freq = 10
+    train_batch_size = 100
+    log_freq = 1
 
     # Set a seed to store the model params into a file with unique name.
     seed = torch.initial_seed()
@@ -303,7 +303,7 @@ def valid_test(model, data_loader, psnr_criterion, epoch, writer, device, mode, 
             HR_imgs = imgs["HR"].to(device)
 
             SR_imgs = model(LR_imgs)
-            print("The tensor shape of valid SR img: ", SR_imgs.shape)
+            #print("The tensor shape of valid SR img: ", SR_imgs.shape)
 
             # Convert RGB tensor to Y_CB_CR tensor
             # Pytorch tensor to numpy array image
