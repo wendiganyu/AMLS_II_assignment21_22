@@ -63,7 +63,7 @@ class Generator(nn.Module):
 
         # A sequence of residual blocks.
         residual_blk_sequence = []
-        for _ in range(50):
+        for _ in range(16):
             residual_blk_sequence.append(ResidualBlock(64))
         self.residual_blk_sequence = nn.Sequential(*residual_blk_sequence)
 
