@@ -165,6 +165,8 @@ def train_SRResnet_model(LR_train_folder_path, LR_valid_folder_path, LR_test_fol
             psnr = 10.0 * torch.log10(1.0 / psnr_loss_criterion(SR_imgs, HR_imgs))
 
             ssim_val = ssim(SR_imgs, HR_imgs, data_range=1, size_average=False)
+            print("ssim_val: ",ssim_val)
+            print(ssim_val.type)
 
             avg_meter_pixel_loss.update(pixel_loss.item(), LR_imgs.size(0))
             print("pixel loss: ", pixel_loss.item())
