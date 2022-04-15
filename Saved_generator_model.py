@@ -58,4 +58,4 @@ if __name__ == '__main__':
     SR_img = SR_img.squeeze(0)
     SR_img = SR_img.transpose(1,2,0)
     print(SR_img.shape)
-    cv2.imwrite("testing2.png", SR_img)
+    cv2.imwrite("testing2.png", cv2.cvtColor(SR_img, cv2.COLOR_RGB2BGR))
