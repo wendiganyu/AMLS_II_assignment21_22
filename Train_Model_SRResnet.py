@@ -48,6 +48,7 @@ def train_SRResnet_model(LR_train_folder_path, LR_valid_folder_path, LR_test_fol
     train_batch_size = 200
     log_freq = 1
 
+
     # Set a seed to store the states files of model.
     seed = torch.initial_seed()
     print(f'Use seed : {seed}')
@@ -102,6 +103,12 @@ def train_SRResnet_model(LR_train_folder_path, LR_valid_folder_path, LR_test_fol
     # Define scheduler
     # Multiply LR by gamma=0.1 every epoch_num//5 epochs.
     gen_scheduler = lr_scheduler.StepLR(gen_optimizer, step_size=epoch_num // 5, gamma=0.1)
+
+    # -------------------------------------------------------------------------------------------------
+    # Define parameters for early stopping
+    patient = 70 # if the valid metrics doesn't improve after patient epochs, stop the training.
+    best_valid_PSNR = 0.
+    early_stopping_cnt = 0
 
     # -------------------------------------------------------------------------------------------------
     # Create a folder to store some SR result samples.
@@ -191,6 +198,18 @@ def train_SRResnet_model(LR_train_folder_path, LR_valid_folder_path, LR_test_fol
                         "seed": seed
                         },
                        os.path.join(result_folder, f"gen_bestPSNR_seed{seed}.pth.tar"))
+
+        # ------------------------------------------------------------------------------------------------
+        # Check early stopping
+        early_stopping_cnt += 1 # Add 1 after each epoch
+
+        if PSNR_valid > best_valid_PSNR:
+            early_stopping_cnt = 0
+            best_valid_PSNR = PSNR_valid
+
+        if early_stopping_cnt >= patient:
+            print(f"Early stopping in epoch {epoch}.")
+            break
 
     return
 

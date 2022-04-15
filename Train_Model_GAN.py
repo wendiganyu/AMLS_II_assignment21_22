@@ -115,6 +115,12 @@ def train_GAN_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_p
     gen_scheduler = lr_scheduler.StepLR(gen_optimizer, step_size=epoch_num // 5, gamma=0.1)
 
     # -------------------------------------------------------------------------------------------------
+    # Define parameters for early stopping
+    patient = 70  # if the valid metrics doesn't improve after patient epochs, stop the training.
+    best_valid_PSNR = 0.
+    early_stopping_cnt = 0
+
+    # -------------------------------------------------------------------------------------------------
     # Create a folder to store some SR result samples.
     model_name = "SRGAN"
     sample_folder = os.path.join("summary_writer_records", model_name, track_name, "logs")
@@ -253,12 +259,12 @@ def train_GAN_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_p
         # Log the train avg losses after each epoch
         writer.add_scalar("Train/Avg_Discriminator Loss", avg_meter_dis_loss.avg, epoch + 1)
         writer.add_scalar("Train/Avg_Generator Loss", avg_meter_gen_loss.avg, epoch + 1)
-        writer.add_scalar("Train/Avg_Pixel Loss", avg_meter_pixel_loss.avg,  epoch + 1)
-        writer.add_scalar("Train/Avg_Content Loss", avg_meter_content_loss.avg,  epoch + 1)
-        writer.add_scalar("Train/Avg_Adversarial Loss", avg_meter_adversarial_loss.avg,  epoch + 1)
-        writer.add_scalar("Train/Avg_Probability of D(HR)", avg_meter_dis_HR_prob.avg,  epoch + 1)
-        writer.add_scalar("Train/Avg_Probability of D(SR)", avg_meter_dis_SR_prob.avg,  epoch + 1)
-        writer.add_scalar("Train/Avg_PSNR", avg_meter_psnr.avg,  epoch + 1)
+        writer.add_scalar("Train/Avg_Pixel Loss", avg_meter_pixel_loss.avg, epoch + 1)
+        writer.add_scalar("Train/Avg_Content Loss", avg_meter_content_loss.avg, epoch + 1)
+        writer.add_scalar("Train/Avg_Adversarial Loss", avg_meter_adversarial_loss.avg, epoch + 1)
+        writer.add_scalar("Train/Avg_Probability of D(HR)", avg_meter_dis_HR_prob.avg, epoch + 1)
+        writer.add_scalar("Train/Avg_Probability of D(SR)", avg_meter_dis_SR_prob.avg, epoch + 1)
+        writer.add_scalar("Train/Avg_PSNR", avg_meter_psnr.avg, epoch + 1)
 
         # ------------------------------------------------------------------------------------------------
         # Validate and test
@@ -294,6 +300,18 @@ def train_GAN_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_p
                         },
                        os.path.join(result_folder, f"dis_bestPSNR_seed{seed}.pth.tar"))
 
+        # ------------------------------------------------------------------------------------------------
+        # Check early stopping
+        early_stopping_cnt += 1  # Add 1 after each epoch
+
+        if PSNR_valid > best_valid_PSNR:
+            early_stopping_cnt = 0
+            best_valid_PSNR = PSNR_valid
+
+        if early_stopping_cnt >= patient:
+            print(f"Early stopping in epoch {epoch}.")
+            break
+
     return
 
 
@@ -324,7 +342,7 @@ def valid_test(model, data_loader, psnr_criterion, epoch, writer, device, mode, 
             HR_imgs = imgs["HR"].to(device)
 
             SR_imgs = model(LR_imgs)
-            #print("The tensor shape of valid SR img: ", SR_imgs.shape)
+            # print("The tensor shape of valid SR img: ", SR_imgs.shape)
 
             # Convert RGB tensor to Y_CB_CR tensor
             # Pytorch tensor to numpy array image
@@ -456,12 +474,12 @@ if __name__ == '__main__':
 
     # Create a dictionary for mapping of the command and the indices of the dataset folder paths.
     dic_dataset_path = {
-        "BicubicX2":0,
-        "BicubicX3":1,
-        "BicubicX4":2,
-        "UnknownX2":3,
-        "UnknownX3":4,
-        "UnknownX4":5
+        "BicubicX2": 0,
+        "BicubicX3": 1,
+        "BicubicX4": 2,
+        "UnknownX2": 3,
+        "UnknownX3": 4,
+        "UnknownX4": 5
     }
     index = dic_dataset_path[args.track]
     LR_train_folder_path = train_LR_track_paths[index]
