@@ -18,6 +18,7 @@ from torch.utils.tensorboard import SummaryWriter
 from torch.autograd import Variable
 from torchvision.transforms import functional as F
 
+from pytorch_msssim import ssim
 from tqdm.auto import tqdm
 import Model_GAN
 import Utils
@@ -129,7 +130,8 @@ def train_SRResnet_model(LR_train_folder_path, LR_valid_folder_path, LR_test_fol
         # Set average meters and progress printer
         avg_meter_pixel_loss = AverageMeter("Pixel loss", ":6.6f")
         avg_meter_psnr = AverageMeter("PSNR", ":4.2f")
-        avg_meter_list = [avg_meter_pixel_loss,  avg_meter_psnr]
+        avg_meter_SSIM = AverageMeter("SSIM", ":4.2f")
+        avg_meter_list = [avg_meter_pixel_loss,  avg_meter_psnr, avg_meter_SSIM]
         progress = ProgressMeter(train_loader_len, avg_meter_list, prefix=f"Epoch: [{epoch + 1}]")
         # -------------------------------------------------------------------------------------
 
@@ -161,9 +163,13 @@ def train_SRResnet_model(LR_train_folder_path, LR_valid_folder_path, LR_test_fol
             # print("LR_imgs_Variable_size: ", LR_imgs.size(0))
 
             psnr = 10.0 * torch.log10(1.0 / psnr_loss_criterion(SR_imgs, HR_imgs))
+
+            ssim_val = ssim(SR_imgs, HR_imgs, data_range=1, size_average=False)
+
             avg_meter_pixel_loss.update(pixel_loss.item(), LR_imgs.size(0))
             print("pixel loss: ", pixel_loss.item())
             avg_meter_psnr.update(psnr.item(), LR_imgs.size(0))
+            avg_meter_SSIM.update(ssim_val.item(), LR_imgs.size(0))
 
             # -------------------------------------------------------------------------------------------
             # Record training log information with log frequency
@@ -176,6 +182,8 @@ def train_SRResnet_model(LR_train_folder_path, LR_valid_folder_path, LR_test_fol
         # Log the train avg losses after each epoch
         writer.add_scalar("Train/Avg_Pixel Loss", avg_meter_pixel_loss.avg,  epoch + 1)
         writer.add_scalar("Train/Avg_PSNR", avg_meter_psnr.avg,  epoch + 1)
+        writer.add_scalar("Train/Avg_SSIM", avg_meter_SSIM.avg, epoch + 1)
+
         # ------------------------------------------------------------------------------------------------
         # Validate and test
         PSNR_valid = valid_test(generator, valid_loader, psnr_loss_criterion, epoch, writer, device, "valid", log_freq)
@@ -228,7 +236,9 @@ def valid_test(model, data_loader, psnr_criterion, epoch, writer, device, mode, 
     :return: Average PSNR performance.
     """
     avg_meter_PSNR = AverageMeter("PSNR", ":4.2f")
-    progress = ProgressMeter(len(data_loader), [avg_meter_PSNR], prefix=f'{mode}: ')
+    avg_meter_SSIM = AverageMeter("SSIM", ":4.2f")
+
+    progress = ProgressMeter(len(data_loader), [avg_meter_PSNR, avg_meter_SSIM], prefix=f'{mode}: ')
 
     # Switch evaluation mode
     model.eval()
@@ -259,7 +269,10 @@ def valid_test(model, data_loader, psnr_criterion, epoch, writer, device, mode, 
 
             # measure accuracy and record loss
             psnr = 10. * torch.log10(1. / psnr_criterion(SR_YCbCr_tensor, HR_YCbCr_tensor))
+            ssim_val = ssim(SR_YCbCr_tensor, HR_YCbCr_tensor, data_range=1, size_average=False)
+
             avg_meter_PSNR.update(psnr.item(), LR_imgs.size(0))
+            avg_meter_SSIM.update(ssim_val.item(), LR_imgs.size(0))
 
             # Record training log information
 
@@ -268,8 +281,11 @@ def valid_test(model, data_loader, psnr_criterion, epoch, writer, device, mode, 
 
     if mode == "valid":
         writer.add_scalar("Valid/PSNR", avg_meter_PSNR.avg, epoch + 1)
+        writer.add_scalar("Valid/SSIM", avg_meter_SSIM.avg, epoch + 1)
+
     elif mode == "test":
         writer.add_scalar("Test/PSNR", avg_meter_PSNR.avg, epoch + 1)
+        writer.add_scalar("Test/SSIM", avg_meter_SSIM.avg, epoch + 1)
 
     return avg_meter_PSNR.avg
 

@@ -18,7 +18,7 @@ from torch.autograd import Variable
 from torchvision.transforms import functional as F
 
 from tqdm.auto import tqdm
-# from skimage.metrics import structural_similarity as ssim
+from pytorch_msssim import ssim
 import Model_GAN
 import Utils
 
@@ -147,10 +147,11 @@ def train_GAN_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_p
         avg_meter_gen_loss = AverageMeter("Generator loss", "6:6f")
 
         avg_meter_psnr = AverageMeter("PSNR", ":4.2f")
+        avg_meter_SSIM = AverageMeter("SSIM", ":4.2f")
 
         avg_meter_list = [avg_meter_pixel_loss, avg_meter_content_loss, avg_meter_adversarial_loss,
                           avg_meter_dis_HR_prob,
-                          avg_meter_dis_SR_prob, avg_meter_dis_loss, avg_meter_gen_loss, avg_meter_psnr]
+                          avg_meter_dis_SR_prob, avg_meter_dis_loss, avg_meter_gen_loss, avg_meter_psnr,avg_meter_SSIM]
 
         progress = ProgressMeter(train_loader_len, avg_meter_list, prefix=f"Epoch: [{epoch + 1}]")
         # -------------------------------------------------------------------------------------
@@ -229,6 +230,7 @@ def train_GAN_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_p
             # print("LR_imgs_Variable_size: ", LR_imgs.size(0))
 
             psnr = 10.0 * torch.log10(1.0 / psnr_loss_criterion(SR_imgs, HR_imgs))
+            ssim_val = ssim(SR_imgs, HR_imgs, data_range=1, size_average=False)
 
             # Update the recorders.
             avg_meter_pixel_loss.update(pixel_loss.item(), LR_imgs.size(0))
@@ -240,6 +242,7 @@ def train_GAN_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_p
             avg_meter_psnr.update(psnr.item(), LR_imgs.size(0))
             avg_meter_dis_loss.update(dis_loss_total.item(), LR_imgs.size(0))
             avg_meter_gen_loss.update(gen_loss_total.item(), LR_imgs.size(0))
+            avg_meter_SSIM.update(ssim_val.item(), LR_imgs.size(0))
 
             # -------------------------------------------------------------------------------------------
             # Record training log information with log frequency
@@ -264,6 +267,8 @@ def train_GAN_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_p
         writer.add_scalar("Train/Avg_Probability of D(HR)", avg_meter_dis_HR_prob.avg, epoch + 1)
         writer.add_scalar("Train/Avg_Probability of D(SR)", avg_meter_dis_SR_prob.avg, epoch + 1)
         writer.add_scalar("Train/Avg_PSNR", avg_meter_psnr.avg, epoch + 1)
+        writer.add_scalar("Train/Avg_SSIM", avg_meter_SSIM.avg, epoch + 1)
+
 
         # ------------------------------------------------------------------------------------------------
         # Validate and test
@@ -328,7 +333,8 @@ def valid_test(model, data_loader, psnr_criterion, epoch, writer, device, mode, 
     :return: Average PSNR performance.
     """
     avg_meter_PSNR = AverageMeter("PSNR", ":4.2f")
-    progress = ProgressMeter(len(data_loader), [avg_meter_PSNR], prefix=f'{mode}: ')
+    avg_meter_SSIM = AverageMeter("SSIM", ":4.2f")
+    progress = ProgressMeter(len(data_loader), [avg_meter_PSNR, avg_meter_SSIM], prefix=f'{mode}: ')
 
     # Switch evaluation mode
     model.eval()
@@ -360,7 +366,10 @@ def valid_test(model, data_loader, psnr_criterion, epoch, writer, device, mode, 
 
             # measure accuracy and record loss
             psnr = 10. * torch.log10(1. / psnr_criterion(SR_YCbCr_tensor, HR_YCbCr_tensor))
+            ssim_val = ssim(SR_YCbCr_tensor, HR_YCbCr_tensor, data_range=1, size_average=False)
+
             avg_meter_PSNR.update(psnr.item(), LR_imgs.size(0))
+            avg_meter_SSIM.update(ssim_val.item(), LR_imgs.size(0))
 
             # Record training log information
 
@@ -369,8 +378,11 @@ def valid_test(model, data_loader, psnr_criterion, epoch, writer, device, mode, 
 
     if mode == "valid":
         writer.add_scalar("Valid/PSNR", avg_meter_PSNR.avg, epoch + 1)
+        writer.add_scalar("Valid/SSIM", avg_meter_SSIM.avg, epoch + 1)
+
     elif mode == "test":
         writer.add_scalar("Test/PSNR", avg_meter_PSNR.avg, epoch + 1)
+        writer.add_scalar("Test/SSIM", avg_meter_SSIM.avg, epoch + 1)
 
     return avg_meter_PSNR.avg
 

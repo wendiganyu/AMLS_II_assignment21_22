@@ -2,3 +2,4 @@ scikit-image
 torch
 torchvision
 tqdm
+pytorch_msssim
