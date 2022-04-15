@@ -142,7 +142,7 @@ def train_SRResnet_model(LR_train_folder_path, LR_valid_folder_path, LR_test_fol
             LR_imgs = Variable(imgs["LR"].type(Tensor))
             HR_imgs = Variable(imgs["HR"].type(Tensor))
 
-            print("LR_imgs shape: ", LR_imgs.shape)
+            # print("LR_imgs shape: ", LR_imgs.shape)
 
             # -------------------------------------------
             # Train generator
@@ -165,13 +165,13 @@ def train_SRResnet_model(LR_train_folder_path, LR_valid_folder_path, LR_test_fol
             psnr = 10.0 * torch.log10(1.0 / psnr_loss_criterion(SR_imgs, HR_imgs))
 
             ssim_val = ssim(SR_imgs, HR_imgs, data_range=1, size_average=False)
-            print("ssim_val: ",ssim_val)
-            print(ssim_val.type)
+            # print("ssim_val: ",ssim_val)
+            # print(ssim_val.shape)
 
             avg_meter_pixel_loss.update(pixel_loss.item(), LR_imgs.size(0))
             print("pixel loss: ", pixel_loss.item())
             avg_meter_psnr.update(psnr.item(), LR_imgs.size(0))
-            avg_meter_SSIM.update(ssim_val, LR_imgs.size(0))
+            avg_meter_SSIM.update(torch.mean(ssim_val).item(), LR_imgs.size(0))
 
             # -------------------------------------------------------------------------------------------
             # Record training log information with log frequency
@@ -274,7 +274,7 @@ def valid_test(model, data_loader, psnr_criterion, epoch, writer, device, mode, 
             ssim_val = ssim(SR_YCbCr_tensor, HR_YCbCr_tensor, data_range=1, size_average=False)
 
             avg_meter_PSNR.update(psnr.item(), LR_imgs.size(0))
-            avg_meter_SSIM.update(ssim_val, LR_imgs.size(0))
+            avg_meter_SSIM.update(torch.mean(ssim_val).item(), LR_imgs.size(0))
 
             # Record training log information
 
