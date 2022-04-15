@@ -100,16 +100,17 @@ def rotate_dataset():
             rotate_target_img(path)
 
 
-def check_img_size_min(folder_path):
+def check_img_size(folder_path):
     """
-    Read the size of all image files in a folder, return the minimal height and the minimal width.
+    Read the size of all image files in a folder, return the minimal height and the minimal width, and the max width.
     :param folder_path: The path of the target folder.
-    :return: the minimal height and the minimal width.
+    :return: the minimal height and the minimal width, and the max width.
     """
     img_file_paths = [os.path.join(folder_path, img_file_name) for img_file_name in os.listdir(folder_path)]
 
     min_height = 100000
     min_width = 100000
+    max_width = 0
 
     for path in img_file_paths:
         img = cv2.imread(path)
@@ -123,9 +124,12 @@ def check_img_size_min(folder_path):
             min_height = h
         if w < min_width:
             min_width = w
+        if w > max_width:
+            max_width = w
 
     print("min height: ", min_height)
     print("min width: ", min_width)
+    print("max width: ", max_width)
 
 def img_rgb2ycbcr(image, sep_y_channel):
     """
@@ -152,10 +156,7 @@ if __name__ == '__main__':
     # train_HR: min_height:648, min_width:2040
     # valid_HR: min_height:816, min_width:2040
     # test_HR: min_height:1068, min_width:2040
-    # check_img_size_min("Datasets/train/HR")
-    # check_img_size_min("Datasets/valid/HR")
-    # check_img_size_min("Datasets/test/HR")
-    img = cv2.imread("Datasets/test/HR/0886.png")
-    img = img_custom_crop(img, 180, 180, 300, 600)
-    cv2.imwrite("HR_crop_test.png", img)
+    check_img_size("Datasets/train/HR")
+    check_img_size("Datasets/valid/HR")
+    check_img_size("Datasets/test/HR")
 

@@ -46,7 +46,7 @@ def train_SRResnet_model(LR_train_folder_path, LR_valid_folder_path, LR_test_fol
     epoch_num = 300
     Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.Tensor
     train_batch_size = 200
-    log_freq = 10
+    log_freq = 1
 
     # Set a seed to store the states files of model.
     seed = torch.initial_seed()
@@ -161,10 +161,14 @@ def train_SRResnet_model(LR_train_folder_path, LR_valid_folder_path, LR_test_fol
             # -------------------------------------------------------------------------------------------
             # Record training log information with log frequency
             if batch_idx % log_freq == 0:
-                num_iter = batch_idx + epoch * train_loader_len
-                writer.add_scalar("Train/Pixel Loss", pixel_loss.item(), num_iter)
-                writer.add_scalar("Train/PSNR", psnr.item(), num_iter)
+                # num_iter = batch_idx + epoch * train_loader_len
+                # writer.add_scalar("Train/Pixel Loss", pixel_loss.item(), num_iter)
+                # writer.add_scalar("Train/PSNR", psnr.item(), num_iter)
                 progress.display(batch_idx)
+
+        # Log the train avg losses after each epoch
+        writer.add_scalar("Train/Avg_Pixel Loss", avg_meter_pixel_loss.avg,  epoch + 1)
+        writer.add_scalar("Train/Avg_PSNR", avg_meter_psnr.avg,  epoch + 1)
         # ------------------------------------------------------------------------------------------------
         # Validate and test
         PSNR_valid = valid_test(generator, valid_loader, psnr_loss_criterion, epoch, writer, device, "valid", log_freq)

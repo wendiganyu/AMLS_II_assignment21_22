@@ -110,7 +110,7 @@ def train_GAN_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_p
 
     # -------------------------------------------------------------------------------------------------
     # Define scheduler
-    # Multiply LR by gamma=0.1 every epoch_num//2 epochs.
+    # Multiply LR by gamma=0.1 every epoch_num//5 epochs.
     dis_scheduler = lr_scheduler.StepLR(dis_optimizer, step_size=epoch_num // 5, gamma=0.1)
     gen_scheduler = lr_scheduler.StepLR(gen_optimizer, step_size=epoch_num // 5, gamma=0.1)
 
@@ -137,10 +137,16 @@ def train_GAN_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_p
         avg_meter_adversarial_loss = AverageMeter("Adversarial loss", ":6.6f")
         avg_meter_dis_HR_prob = AverageMeter("Probability of Discriminator(HR)", ":6.6f")
         avg_meter_dis_SR_prob = AverageMeter("Probability of Discriminator(SR)", ":6.6f")
+
+        avg_meter_dis_loss = AverageMeter("Discriminator loss", ":6.6f")
+        avg_meter_gen_loss = AverageMeter("Generator loss", "6:6f")
+
         avg_meter_psnr = AverageMeter("PSNR", ":4.2f")
+
         avg_meter_list = [avg_meter_pixel_loss, avg_meter_content_loss, avg_meter_adversarial_loss,
                           avg_meter_dis_HR_prob,
-                          avg_meter_dis_SR_prob, avg_meter_psnr]
+                          avg_meter_dis_SR_prob, avg_meter_dis_loss, avg_meter_gen_loss, avg_meter_psnr]
+
         progress = ProgressMeter(train_loader_len, avg_meter_list, prefix=f"Epoch: [{epoch + 1}]")
         # -------------------------------------------------------------------------------------
 
@@ -218,6 +224,8 @@ def train_GAN_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_p
             # print("LR_imgs_Variable_size: ", LR_imgs.size(0))
 
             psnr = 10.0 * torch.log10(1.0 / psnr_loss_criterion(SR_imgs, HR_imgs))
+
+            # Update the recorders.
             avg_meter_pixel_loss.update(pixel_loss.item(), LR_imgs.size(0))
             print("pixel loss: ", pixel_loss.item())
             avg_meter_content_loss.update(content_loss.item(), LR_imgs.size(0))
@@ -225,20 +233,33 @@ def train_GAN_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_p
             avg_meter_dis_HR_prob.update(dis_HR_prob.item(), LR_imgs.size(0))
             avg_meter_dis_SR_prob.update(dis_SR_prob.item(), LR_imgs.size(0))
             avg_meter_psnr.update(psnr.item(), LR_imgs.size(0))
+            avg_meter_dis_loss.update(dis_loss_total.item(), LR_imgs.size(0))
+            avg_meter_gen_loss.update(gen_loss_total.item(), LR_imgs.size(0))
 
             # -------------------------------------------------------------------------------------------
             # Record training log information with log frequency
             if batch_idx % log_freq == 0:
-                num_iter = batch_idx + epoch * train_loader_len
-                writer.add_scalar("Train/Discriminator Loss", dis_loss_total.item(), num_iter)
-                writer.add_scalar("Train/Generator Loss", gen_loss_total.item(), num_iter)
-                writer.add_scalar("Train/Pixel Loss", pixel_loss.item(), num_iter)
-                writer.add_scalar("Train/Content Loss", content_loss.item(), num_iter)
-                writer.add_scalar("Train/Adversarial Loss", adversarial_loss.item(), num_iter)
-                writer.add_scalar("Train/Probability of D(HR)", dis_HR_prob.item(), num_iter)
-                writer.add_scalar("Train/Probability of D(SR)", dis_SR_prob.item(), num_iter)
-                writer.add_scalar("Train/PSNR", psnr.item(), num_iter)
+                # num_iter = batch_idx + epoch * train_loader_len
+                # writer.add_scalar("Train/Discriminator Loss", dis_loss_total.item(), num_iter)
+                # writer.add_scalar("Train/Generator Loss", gen_loss_total.item(), num_iter)
+                # writer.add_scalar("Train/Pixel Loss", pixel_loss.item(), num_iter)
+                # writer.add_scalar("Train/Content Loss", content_loss.item(), num_iter)
+                # writer.add_scalar("Train/Adversarial Loss", adversarial_loss.item(), num_iter)
+                # writer.add_scalar("Train/Probability of D(HR)", dis_HR_prob.item(), num_iter)
+                # writer.add_scalar("Train/Probability of D(SR)", dis_SR_prob.item(), num_iter)
+                # writer.add_scalar("Train/PSNR", psnr.item(), num_iter)
                 progress.display(batch_idx)
+
+        # Log the train avg losses after each epoch
+        writer.add_scalar("Train/Avg_Discriminator Loss", avg_meter_dis_loss.avg, epoch + 1)
+        writer.add_scalar("Train/Avg_Generator Loss", avg_meter_gen_loss.avg, epoch + 1)
+        writer.add_scalar("Train/Avg_Pixel Loss", avg_meter_pixel_loss.avg,  epoch + 1)
+        writer.add_scalar("Train/Avg_Content Loss", avg_meter_content_loss.avg,  epoch + 1)
+        writer.add_scalar("Train/Avg_Adversarial Loss", avg_meter_adversarial_loss.avg,  epoch + 1)
+        writer.add_scalar("Train/Avg_Probability of D(HR)", avg_meter_dis_HR_prob.avg,  epoch + 1)
+        writer.add_scalar("Train/Avg_Probability of D(SR)", avg_meter_dis_SR_prob.avg,  epoch + 1)
+        writer.add_scalar("Train/Avg_PSNR", avg_meter_psnr.avg,  epoch + 1)
+
         # ------------------------------------------------------------------------------------------------
         # Validate and test
         PSNR_valid = valid_test(generator, valid_loader, psnr_loss_criterion, epoch, writer, device, "valid", log_freq)
