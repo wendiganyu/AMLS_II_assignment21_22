@@ -4,8 +4,6 @@ Run this file to train the GAN model for image super resolution.
 import argparse
 import os
 
-import shutil
-import time
 from enum import Enum
 
 import DataLoad

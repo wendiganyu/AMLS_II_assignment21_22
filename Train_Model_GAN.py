@@ -3,8 +3,6 @@ Run this file to train the GAN model for image super resolution.
 """
 import os
 
-import shutil
-import time
 from enum import Enum
 import argparse
 import DataLoad
@@ -20,7 +18,7 @@ from torch.autograd import Variable
 from torchvision.transforms import functional as F
 
 from tqdm.auto import tqdm
-from skimage.metrics import structural_similarity as ssim
+# from skimage.metrics import structural_similarity as ssim
 import Model_GAN
 import Utils
 
