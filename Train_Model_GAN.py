@@ -20,6 +20,7 @@ from torch.autograd import Variable
 from torchvision.transforms import functional as F
 
 from tqdm.auto import tqdm
+from skimage.metrics import structural_similarity as ssim
 import Model_GAN
 import Utils
 
