@@ -140,6 +140,8 @@ def train_SRResnet_model(LR_train_folder_path, LR_valid_folder_path, LR_test_fol
             LR_imgs = Variable(imgs["LR"].type(Tensor))
             HR_imgs = Variable(imgs["HR"].type(Tensor))
 
+            print("LR_imgs shape: ", LR_imgs.shape)
+
             # -------------------------------------------
             # Train generator
             gen_optimizer.zero_grad()
