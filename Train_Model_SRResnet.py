@@ -89,6 +89,7 @@ def train_SRResnet_model(LR_train_folder_path, LR_valid_folder_path, LR_test_fol
 
     # -------------------------------------------------------------------------------------------------
     # Define loss criterion.
+    # Same criterion, different names for different use.
     psnr_loss_criterion = nn.MSELoss().to(device)
     pixel_loss_criterion = nn.MSELoss().to(device)
 
@@ -105,7 +106,7 @@ def train_SRResnet_model(LR_train_folder_path, LR_valid_folder_path, LR_test_fol
 
     # -------------------------------------------------------------------------------------------------
     # Define parameters for early stopping
-    patient = 70 # if the valid metrics doesn't improve after patient epochs, stop the training.
+    patient = 30 # if the valid metrics doesn't improve after patient epochs, stop the training.
     best_valid_PSNR = 0.
     early_stopping_cnt = 0
 
@@ -212,6 +213,7 @@ def train_SRResnet_model(LR_train_folder_path, LR_valid_folder_path, LR_test_fol
         # ------------------------------------------------------------------------------------------------
         # Check early stopping
         early_stopping_cnt += 1 # Add 1 after each epoch
+        print("Early stopping counter: ", early_stopping_cnt)
 
         if PSNR_valid > best_valid_PSNR:
             early_stopping_cnt = 0
