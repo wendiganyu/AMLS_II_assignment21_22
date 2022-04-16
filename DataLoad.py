@@ -3,6 +3,8 @@ This file implements the functions to load DIV2K 2017 datasets.
 DIV2K can be downloaded from https://data.vision.ee.ethz.ch/cvl/DIV2K.
 """
 import os
+import random
+
 import cv2
 import numpy as np
 from torchvision.transforms import functional as F
@@ -50,9 +52,26 @@ class DIV2KDatasets(Dataset):
         LR_img_crop_width = self.HR_img_crop_width // self.upscale_factor
 
         if self.random_crop_trigger:
+            # Crop a random area from the original image
             HR_image_crop, HR_top_coord, HR_left_coord = Utils.img_random_crop(HR_image, self.HR_img_crop_height, self.HR_img_crop_width)
             LR_image_crop, _, _ = Utils.img_random_crop(LR_image, LR_img_crop_height, LR_img_crop_width,
                                                         HR_top_coord // self.upscale_factor, HR_left_coord // self.upscale_factor)
+
+            # Randomly flip or rotate the cropped image with a prob of 1/5
+
+            if random.random() <= 0.2:
+                HR_image_crop = cv2.flip(HR_image_crop, 0)  # Horizontal
+                LR_image_crop = cv2.flip(LR_image_crop, 0)
+            if random.random() <= 0.2:
+                HR_image_crop = cv2.flip(HR_image_crop, 1)  # Vertical
+                LR_image_crop = cv2.flip(LR_image_crop, 1)
+            if random.random() <= 0.2:
+                HR_image_crop = cv2.rotate(HR_image_crop, cv2.ROTATE_90_CLOCKWISE)
+                LR_image_crop = cv2.rotate(LR_image_crop, cv2.ROTATE_90_CLOCKWISE)
+            if random.random() <= 0.2:
+                HR_image_crop = cv2.rotate(HR_image_crop, cv2.ROTATE_90_COUNTERCLOCKWISE)
+                LR_image_crop = cv2.rotate(LR_image_crop, cv2.ROTATE_90_COUNTERCLOCKWISE)
+
         else:
             HR_image_crop = Utils.img_center_crop(HR_image, self.HR_img_crop_height, self.HR_img_crop_width)
             LR_image_crop = Utils.img_center_crop(LR_image, LR_img_crop_height, LR_img_crop_width)
