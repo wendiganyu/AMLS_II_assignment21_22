@@ -144,7 +144,7 @@ def train_GAN_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_p
         avg_meter_dis_SR_prob = AverageMeter("Probability of Discriminator(SR)", ":6.6f")
 
         avg_meter_dis_loss = AverageMeter("Discriminator loss", ":6.6f")
-        avg_meter_gen_loss = AverageMeter("Generator loss", "6:6f")
+        avg_meter_gen_loss = AverageMeter("Generator loss", ":6.6f")
 
         avg_meter_psnr = AverageMeter("PSNR", ":4.2f")
         avg_meter_SSIM = AverageMeter("SSIM", ":4.2f")
