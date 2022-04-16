@@ -45,7 +45,7 @@ def train_SRResnet_model(LR_train_folder_path, LR_valid_folder_path, LR_test_fol
     epoch_num = 300
     Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.Tensor
     train_batch_size = 8
-    log_freq = 1
+    log_freq = 20
 
 
     # Set a seed to store the states files of model.
