@@ -44,7 +44,7 @@ def train_SRResnet_model(LR_train_folder_path, LR_valid_folder_path, LR_test_fol
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     epoch_num = 300
     Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.Tensor
-    train_batch_size = 200
+    train_batch_size = 8
     log_freq = 1
 
 
