@@ -113,7 +113,7 @@ def train_SRResnet_model(LR_train_folder_path, LR_valid_folder_path, LR_test_fol
     # -------------------------------------------------------------------------------------------------
     # Create a folder to store some SR result samples.
     model_name = "SRResnet"
-    sample_folder = os.path.join("summary_writer_records", model_name, track_name, seed, "logs")
+    sample_folder = os.path.join("summary_writer_records", model_name, track_name, str(seed), "logs")
     result_folder = os.path.join("results", model_name, track_name)
     if not os.path.exists(sample_folder):
         os.makedirs(sample_folder)

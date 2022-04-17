@@ -131,7 +131,7 @@ def train_GAN_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_p
 
     # -------------------------------------------------------------------------------------------------
     # Create summary writers.
-    writer = SummaryWriter(os.path.join("summary_writer_records", model_name, track_name, seed, "logs"))
+    writer = SummaryWriter(os.path.join("summary_writer_records", model_name, track_name, str(seed), "logs"))
 
     # Train
     for epoch in range(epoch_num):
