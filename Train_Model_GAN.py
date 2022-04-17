@@ -206,13 +206,13 @@ def train_GAN_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_p
             SR_dis_valid_output = discriminator(SR_imgs)
 
             # Define weights of different losses
-            pixel_loss_weight = 0.01
+            pixel_loss_weight = 2.0
             content_loss_weight = 1.0
             adversarial_loss_weight = 0.005
 
             # Calculate losses
             pixel_loss = pixel_loss_weight * pixel_loss_criterion(SR_imgs, HR_imgs.detach())
-            content_loss = content_loss_weight * content_loss_criterion(SR_imgs, HR_imgs.detach())
+            content_loss = content_loss_weight * 0.006 * content_loss_criterion(SR_imgs, HR_imgs.detach())
             adversarial_loss = adversarial_loss_weight * adversarial_loss_criterion(SR_dis_valid_output, real_img_label)
 
             gen_loss_total = pixel_loss + content_loss + adversarial_loss
