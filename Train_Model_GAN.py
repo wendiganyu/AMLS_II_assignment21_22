@@ -206,7 +206,7 @@ def train_GAN_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_p
             SR_dis_valid_output = discriminator(SR_imgs)
 
             # Define weights of different losses
-            pixel_loss_weight = 1.0
+            pixel_loss_weight = 0.0
             content_loss_weight = 1.0
             adversarial_loss_weight = 0.001
 

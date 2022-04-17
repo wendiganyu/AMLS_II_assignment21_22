@@ -186,6 +186,6 @@ class ContentLoss(nn.Module):
         high_res_img = high_res_img.sub(self.mean).div(self.std)
 
         # Calculate the content loss
-        loss = F.l1_loss(self.feature_extractor(super_res_img), self.feature_extractor(high_res_img))
+        loss = F.mse_loss(self.feature_extractor(super_res_img), self.feature_extractor(high_res_img))
 
         return loss
