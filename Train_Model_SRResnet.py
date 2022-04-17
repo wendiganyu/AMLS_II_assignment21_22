@@ -102,7 +102,7 @@ def train_SRResnet_model(LR_train_folder_path, LR_valid_folder_path, LR_test_fol
     # -------------------------------------------------------------------------------------------------
     # Define scheduler
     # Multiply LR by gamma=0.1 every epoch_num//5 epochs.
-    gen_scheduler = lr_scheduler.StepLR(gen_optimizer, step_size=epoch_num // 5, gamma=0.1)
+    gen_scheduler = lr_scheduler.StepLR(gen_optimizer, step_size=epoch_num // 10, gamma=0.1)
 
     # -------------------------------------------------------------------------------------------------
     # Define parameters for early stopping

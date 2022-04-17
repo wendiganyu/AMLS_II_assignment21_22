@@ -110,8 +110,8 @@ def train_GAN_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_p
     # -------------------------------------------------------------------------------------------------
     # Define scheduler
     # Multiply LR by gamma=0.1 every epoch_num//5 epochs.
-    dis_scheduler = lr_scheduler.StepLR(dis_optimizer, step_size=epoch_num // 5, gamma=0.1)
-    gen_scheduler = lr_scheduler.StepLR(gen_optimizer, step_size=epoch_num // 5, gamma=0.1)
+    dis_scheduler = lr_scheduler.StepLR(dis_optimizer, step_size=epoch_num // 10, gamma=0.1)
+    gen_scheduler = lr_scheduler.StepLR(gen_optimizer, step_size=epoch_num // 10, gamma=0.1)
 
     # -------------------------------------------------------------------------------------------------
     # Define parameters for early stopping
