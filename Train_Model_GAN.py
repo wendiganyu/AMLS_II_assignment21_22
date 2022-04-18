@@ -146,8 +146,8 @@ def train_GAN_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_p
         avg_meter_dis_loss = AverageMeter("Discriminator loss", ":6.6f")
         avg_meter_gen_loss = AverageMeter("Generator loss", ":6.6f")
 
-        # avg_meter_psnr = AverageMeter("PSNR", ":4.2f")
-        # avg_meter_SSIM = AverageMeter("SSIM", ":4.2f")
+        avg_meter_psnr = AverageMeter("PSNR", ":4.2f")
+        avg_meter_SSIM = AverageMeter("SSIM", ":4.2f")
 
         avg_meter_list = [avg_meter_pixel_loss, avg_meter_content_loss, avg_meter_adversarial_loss,
                           avg_meter_dis_HR_prob,
@@ -229,8 +229,8 @@ def train_GAN_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_p
             # Calculate related metrics
             # print("LR_imgs_Variable_size: ", LR_imgs.size(0))
 
-            # psnr = 10.0 * torch.log10(1.0 / psnr_loss_criterion(SR_imgs, HR_imgs))
-            # ssim_val = ssim(SR_imgs, HR_imgs, data_range=1, size_average=False)
+            psnr = 10.0 * torch.log10(1.0 / psnr_loss_criterion(SR_imgs, HR_imgs))
+            ssim_val = ssim(SR_imgs, HR_imgs, data_range=1, size_average=False)
 
             # Update the recorders.
             avg_meter_pixel_loss.update(pixel_loss.item(), LR_imgs.size(0))
@@ -239,10 +239,10 @@ def train_GAN_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_p
             avg_meter_adversarial_loss.update(adversarial_loss.item(), LR_imgs.size(0))
             avg_meter_dis_HR_prob.update(dis_HR_prob.item(), LR_imgs.size(0))
             avg_meter_dis_SR_prob.update(dis_SR_prob.item(), LR_imgs.size(0))
-            # avg_meter_psnr.update(psnr.item(), LR_imgs.size(0))
+            avg_meter_psnr.update(psnr.item(), LR_imgs.size(0))
             avg_meter_dis_loss.update(dis_loss_total.item(), LR_imgs.size(0))
             avg_meter_gen_loss.update(gen_loss_total.item(), LR_imgs.size(0))
-            # avg_meter_SSIM.update(torch.mean(ssim_val).item(), LR_imgs.size(0))
+            avg_meter_SSIM.update(torch.mean(ssim_val).item(), LR_imgs.size(0))
 
             # -------------------------------------------------------------------------------------------
             # Record training log information with log frequency

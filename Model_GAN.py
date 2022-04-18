@@ -177,13 +177,13 @@ class ContentLoss(nn.Module):
             parameter.requires_grad = False
 
         # The constant values of mean and the standard are the parameters of VGG19 used on ImageNet.
-        self.register_buffer("mean", torch.Tensor([0.485, 0.456, 0.406]).view(1,3,1,1))
-        self.register_buffer("std", torch.Tensor([0.229, 0.224, 0.225]).view(1,3,1,1))
+        # self.register_buffer("mean", torch.Tensor([0.485, 0.456, 0.406]).view(1,3,1,1))
+        # self.register_buffer("std", torch.Tensor([0.229, 0.224, 0.225]).view(1,3,1,1))
 
     def forward(self, super_res_img, high_res_img):
         # Normalization
-        super_res_img = super_res_img.sub(self.mean).div(self.std)
-        high_res_img = high_res_img.sub(self.mean).div(self.std)
+        # super_res_img = super_res_img.sub(self.mean).div(self.std)
+        # high_res_img = high_res_img.sub(self.mean).div(self.std)
 
         # Calculate the content loss
         loss = F.mse_loss(self.feature_extractor(super_res_img), self.feature_extractor(high_res_img))
