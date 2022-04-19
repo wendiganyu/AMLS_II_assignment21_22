@@ -136,18 +136,15 @@ if __name__ == '__main__':
 
     # Use saved model to reconstruct the LR input images and save the results.
     path = "Datasets/test/LR_unknown_X4/0886x4.png"
-    # LR_img_path_list = ["Datasets/test/LR_bicubic_X2/0886x2.png", "Datasets/test/LR_bicubic_X3/0886x3.png",
-    #                     "Datasets/test/LR_bicubic_X4/0886x4.png", "Datasets/test/LR_unknown_X2/0886x2.png",
-    #                     "Datasets/test/LR_unknown_X3/0886x3.png", "Datasets/test/LR_unknown_X4/0886x4.png"]
 
     LR_img_path_list = ["Datasets/test/LR_bicubic_X2/0890x2.png", "Datasets/test/LR_bicubic_X3/0890x3.png",
                         "Datasets/test/LR_bicubic_X4/0890x4.png", "Datasets/test/LR_unknown_X2/0890x2.png",
                         "Datasets/test/LR_unknown_X3/0890x3.png", "Datasets/test/LR_unknown_X4/0890x4.png"]
 
-    SR_name_list = ["SRResnet_0886_BicubicX2.png", "SRResnet_0886_BicubicX3.png", "SRResnet_0886_BicubicX4.png",
-                    "SRResnet_0886_UnknownX2.png", "SRResnet_0886_UnknownX3.png", "SRResnet_0886_UnknownX4.png",
-                    "SRGAN_0886_BicubicX2.png", "SRGAN_0886_BicubicX3.png", "SRGAN_0886_BicubicX4.png",
-                    "SRGAN_0886_UnknownX2.png", "SRGAN_0886_UnknownX3.png", "SRGAN_0886_UnknownX4.png"]
+    SR_name_list = ["SRResnet_0890_BicubicX2.png", "SRResnet_0890_BicubicX3.png", "SRResnet_0890_BicubicX4.png",
+                    "SRResnet_0890_UnknownX2.png", "SRResnet_0890_UnknownX3.png", "SRResnet_0890_UnknownX4.png",
+                    "SRGAN_0890_BicubicX2.png", "SRGAN_0890_BicubicX3.png", "SRGAN_0890_BicubicX4.png",
+                    "SRGAN_0890_UnknownX2.png", "SRGAN_0890_UnknownX3.png", "SRGAN_0890_UnknownX4.png"]
 
     HR_img = cv2.imread("Datasets/test/HR/0890.png")
     HR_img_cropped = Utils.img_center_crop(HR_img, 180, 180).astype(np.float32) / 255
