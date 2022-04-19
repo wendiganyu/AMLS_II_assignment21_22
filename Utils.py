@@ -156,7 +156,10 @@ if __name__ == '__main__':
     # train_HR: min_height:648, min_width:2040
     # valid_HR: min_height:816, min_width:2040
     # test_HR: min_height:1068, min_width:2040
-    check_img_size("Datasets/train/HR")
-    check_img_size("Datasets/valid/HR")
-    check_img_size("Datasets/test/HR")
+    # check_img_size("Datasets/train/HR")
+    # check_img_size("Datasets/valid/HR")
+    # check_img_size("Datasets/test/HR")
 
+    HR_img = cv2.imread("Datasets/test/HR/0890.png")
+    HR_img_cropped = img_center_crop(HR_img, 180, 180)
+    cv2.imwrite("images/HR_0890_cropped.png", HR_img_cropped)
