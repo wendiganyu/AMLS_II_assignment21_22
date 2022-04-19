@@ -122,7 +122,7 @@ def train_SRResnet_model(LR_train_folder_path, LR_valid_folder_path, LR_test_fol
 
     # -------------------------------------------------------------------------------------------------
     # Create summary writers.
-    writer = SummaryWriter(os.path.join("summary_writer_records", model_name, track_name, "logs"))
+    writer = SummaryWriter(os.path.join("summary_writer_records", model_name, track_name, seed, "logs"))
 
 
     # Train
