@@ -9,7 +9,7 @@ import numpy as np
 from torchvision.transforms import functional as F
 import Utils
 from torch import nn
-from Saved_generator_model import load_saved_generator
+from Utils import load_saved_generator
 from pytorch_msssim import ssim
 
 
