@@ -149,9 +149,9 @@ if __name__ == '__main__':
     HR_img = cv2.imread("Datasets/test/HR/0890.png")
     HR_img_cropped = Utils.img_center_crop(HR_img, 180, 180).astype(np.float32) / 255
 
-    restore_image("results/SRResnet/BicubicX2/gen_bestPSNR_seed11143173117177917078.pth.tar", 2,
+    restore_image("results/SRResnet/BicubicX2/gen_bestPSNR_seed13193292803020048063.pth.tar", 2,
                   LR_img_path_list[0], SR_name_list[0], HR_img_cropped)
-    restore_image("results/SRResnet/BicubicX3/gen_bestPSNR_seed8443402548718658060.pth.tar", 3,
+    restore_image("results/SRResnet/BicubicX3/gen_bestPSNR_seed12822635624640567534.pth.tar", 3,
                   LR_img_path_list[1], SR_name_list[1], HR_img_cropped)
     restore_image("results/SRResnet/BicubicX4/gen_bestPSNR_seed9753949578282950113.pth.tar", 4,
                   LR_img_path_list[2], SR_name_list[2], HR_img_cropped)
@@ -163,7 +163,7 @@ if __name__ == '__main__':
                   LR_img_path_list[5], SR_name_list[5], HR_img_cropped)
 
 
-    restore_image("results/SRGAN/BicubicX2/gen_bestPSNR_seed4098937827063789776.pth.tar", 2,
+    restore_image("results/SRGAN/BicubicX2/gen_bestPSNR_seed4395250239870251282.pth.tar", 2,
                   LR_img_path_list[0], SR_name_list[6], HR_img_cropped)
     restore_image("results/SRGAN/BicubicX3/gen_bestPSNR_seed10309889058753148033.pth.tar", 3,
                   LR_img_path_list[1], SR_name_list[7], HR_img_cropped)
@@ -173,7 +173,7 @@ if __name__ == '__main__':
                   LR_img_path_list[3], SR_name_list[9], HR_img_cropped)
     restore_image("results/SRGAN/UnknownX3/gen_bestPSNR_seed18100551163404145621.pth.tar", 3,
                   LR_img_path_list[4], SR_name_list[10], HR_img_cropped)
-    restore_image("results/SRGAN/UnknownX4/gen_bestPSNR_seed17892934951983132360.pth.tar", 4,
+    restore_image("results/SRGAN/UnknownX4/gen_bestPSNR_seed16442344789121848687.pth.tar", 4,
                   LR_img_path_list[5], SR_name_list[11], HR_img_cropped)
 
 
