@@ -26,6 +26,10 @@ The contents Dataset/ aren't contained under this repository, you need to downlo
 
 ## How to run
 First set up the Python environment with required packages. I use the Python version of 3.9.
+To install the required packages:
+```
+pip install -r requirements.txt
+```
 
 Then, download the dataset: [Dataset](https://drive.google.com/file/d/1YqX7FZg3DjGmdQs6yDjvuTzz-qKeK_dt/view?usp=sharing). Unzip them and put the folders under this project directory.
 
