@@ -31,7 +31,7 @@ To install the required packages:
 pip install -r requirements.txt
 ```
 
-Then, download the dataset: [Dataset](https://drive.google.com/file/d/1YqX7FZg3DjGmdQs6yDjvuTzz-qKeK_dt/view?usp=sharing). Unzip them and put the folders under this project directory.
+Then, download the dataset: [Dataset](https://drive.google.com/file/d/1YqX7FZg3DjGmdQs6yDjvuTzz-qKeK_dt/view?usp=sharing). Unzip it and put the contents under Datasets/ folder.
 
 Then, the following are the available commands to train SRResnet or SRGAN, with different operator factors and different upscale factors. Run the command under the path of this project directory:
 ```
@@ -49,14 +49,14 @@ python Train_Model_GAN.py --track="UnknownX2"
 python Train_Model_GAN.py --track="UnknownX3" 
 python Train_Model_GAN.py --track="UnknownX4"
 ```
-In interested, you can check my program running records in the folder RunRecords/.
+In interested, you can check my program running records by unzipping RunRecords.zip.
 
 If you want to see the visualization results with the saved model, you can first download and unzip the model files to the results/ folder: [Results](https://drive.google.com/file/d/1l_D4dleZ427yqDYGBXeuuWJ2pVNHL7z1/view?usp=sharing)
 And then run:
 ```
 python Visualization.py
 ```
-Or if you are interested of training the model yourself, you can adjust the corresponding codes in Visualization.py and run.
+Or if you are interested of training the model yourself and check the visualization results, you can adjust the corresponding codes indicating the path of the saved models in Visualization.py and run.
 
 ### Prerequisites
 
