@@ -3,7 +3,7 @@ This is my final project of Applied Machine Learning Systems course II, which do
 dataset using models of SRResnet and SRGAN. SRResnet has the same network structure as the SRGAN generator but a 
 different loss function. The results mainly show that SRGAN generates more realistic SR outputs than SRResnet. 
 And both models’ performances degrade with the upscale factor growing from 2 to 4.
-
+![image](https://github.com/wendiganyu/AMLS_II_assignment21_22/blob/main/images/Pre.png)
 
 # Project Structure
 ```bash
