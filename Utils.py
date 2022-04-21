@@ -7,7 +7,6 @@ import os
 import numpy as np
 import cv2
 import torch
-from PIL import Image
 
 import Model_GAN
 

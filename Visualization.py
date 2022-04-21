@@ -40,13 +40,13 @@ def restore_image(model_path, upscale_factor, input_LR_image_path, SR_image_name
     # print('height: ', h)
     # print('channel: ', c)
 
-    input_LR_crop = Utils.img_center_crop(input_LR_img, SR_height // upscale_factor, SR_width // upscale_factor,)
+    input_LR_crop = Utils.img_center_crop(input_LR_img, SR_height // upscale_factor, SR_width // upscale_factor, )
 
     input_LR_crop = cv2.cvtColor(input_LR_crop, cv2.COLOR_BGR2RGB)
     HR_img_cropped_tmp = cv2.cvtColor(HR_img_cropped, cv2.COLOR_BGR2RGB)
 
     input_LR_crop = input_LR_crop.transpose(2, 0, 1)
-    HR_img_cropped_tmp = HR_img_cropped_tmp.transpose(2,0,1)
+    HR_img_cropped_tmp = HR_img_cropped_tmp.transpose(2, 0, 1)
 
     input_LR_crop = torch.Tensor(input_LR_crop)
     input_LR_crop = input_LR_crop.unsqueeze(0)
@@ -59,8 +59,7 @@ def restore_image(model_path, upscale_factor, input_LR_image_path, SR_image_name
     SR_img_to_transform = SR_img.detach().clone()
     HR_img_to_transform = HR_img_cropped_tmp.detach().clone()
 
-
-    #---------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------
     psnr_loss_criterion = nn.MSELoss().to(device)
     # Convert RGB tensor to Y_CB_CR tensor
     # Pytorch tensor to numpy array image
@@ -84,7 +83,7 @@ def restore_image(model_path, upscale_factor, input_LR_image_path, SR_image_name
     print(f"PSNR of {SR_image_name}: ", psnr)
     print(f"SSIM of {SR_image_name}: ", ssim_val)
 
-    #---------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------
 
     SR_img = SR_img.detach().numpy()
     SR_img = SR_img.astype(np.float32) * 255
@@ -124,12 +123,13 @@ def line_the_presentation_image():
     right_coord = left_coord + 180
     down_coord = top_coord + 180
     line_thickness = 4
-    cv2.line(HR_img, (left_coord, top_coord), (right_coord, top_coord), (0,255,0), thickness=line_thickness)
-    cv2.line(HR_img, (left_coord, top_coord), (left_coord, down_coord), (0,255,0), thickness=line_thickness)
-    cv2.line(HR_img, (right_coord, top_coord), (right_coord, down_coord), (0,255,0), thickness=line_thickness)
-    cv2.line(HR_img, (left_coord, down_coord), (right_coord, down_coord), (0,255,0), thickness=line_thickness)
+    cv2.line(HR_img, (left_coord, top_coord), (right_coord, top_coord), (0, 255, 0), thickness=line_thickness)
+    cv2.line(HR_img, (left_coord, top_coord), (left_coord, down_coord), (0, 255, 0), thickness=line_thickness)
+    cv2.line(HR_img, (right_coord, top_coord), (right_coord, down_coord), (0, 255, 0), thickness=line_thickness)
+    cv2.line(HR_img, (left_coord, down_coord), (right_coord, down_coord), (0, 255, 0), thickness=line_thickness)
 
     cv2.imwrite("images/HR_0890_lined.png", HR_img)
+
 
 if __name__ == '__main__':
     line_the_presentation_image()
@@ -162,7 +162,6 @@ if __name__ == '__main__':
     restore_image("results/SRResnet/UnknownX4/gen_bestPSNR_seed3689588678136550971.pth.tar", 4,
                   LR_img_path_list[5], SR_name_list[5], HR_img_cropped)
 
-
     restore_image("results/SRGAN/BicubicX2/gen_bestPSNR_seed4395250239870251282.pth.tar", 2,
                   LR_img_path_list[0], SR_name_list[6], HR_img_cropped)
     restore_image("results/SRGAN/BicubicX3/gen_bestPSNR_seed10309889058753148033.pth.tar", 3,
@@ -173,11 +172,5 @@ if __name__ == '__main__':
                   LR_img_path_list[3], SR_name_list[9], HR_img_cropped)
     restore_image("results/SRGAN/UnknownX3/gen_bestPSNR_seed18100551163404145621.pth.tar", 3,
                   LR_img_path_list[4], SR_name_list[10], HR_img_cropped)
-    restore_image("results/SRGAN/UnknownX4/gen_bestPSNR_seed16442344789121848687.pth.tar", 4,
+    restore_image("results/SRGAN/UnknownX4/gen_bestPSNR_seed7748531856797521154.pth.tar", 4,
                   LR_img_path_list[5], SR_name_list[11], HR_img_cropped)
-
-
-
-
-
-

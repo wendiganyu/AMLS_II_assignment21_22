@@ -461,7 +461,7 @@ class ProgressMeter(object):
 
 
 if __name__ == '__main__':
-    torch.cuda.set_device(2)  # Choose the number of GPU on which we train the model.
+    # torch.cuda.set_device(2)  # Choose the number of GPU on which we train the model.
     # ---------------------------------------------------------------------------------------------------
     # Get params from command lines.
     p = argparse.ArgumentParser()
