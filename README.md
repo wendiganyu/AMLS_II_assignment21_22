@@ -12,6 +12,7 @@ And both models’ performances degrade with the upscale factor growing from 2 t
 │  Model_GAN.py: Define the model structure of SRGAN with PyTorch.
 │  README.md
 │  requirements.txt: Python package requirements.
+│  main.py: Train the SRResnet and SRGAN models under all the tracks with one run. 
 │  Train_Model_GAN.py: Run this file to train the SRGAN model.
 │  Train_Model_SRResnet.py: Run this file to train the SRResnet model.
 │  Utils.py: Utility functions mainly doing image processing and loading the saved SR generator model.
@@ -50,6 +51,11 @@ python Train_Model_GAN.py --track="UnknownX3"
 python Train_Model_GAN.py --track="UnknownX4"
 ```
 In interested, you can check my program running records by unzipping RunRecords.zip.
+
+Or if you want to execute all the commands above in only one run, run with main.py:
+```
+python main.py
+```
 
 If you want to see the visualization results with the saved model, you can first download and unzip the model files to the results/ folder: [Results](https://drive.google.com/file/d/1l_D4dleZ427yqDYGBXeuuWJ2pVNHL7z1/view?usp=sharing)
 And then run:

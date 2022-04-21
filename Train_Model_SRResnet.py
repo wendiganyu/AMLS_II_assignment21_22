@@ -414,5 +414,6 @@ if __name__ == '__main__':
         "UnknownX4": 4
     }
     upscale_factor = dic_upscale_factor[args.track]
+
     train_SRResnet_model(LR_train_folder_path, LR_valid_folder_path, LR_test_folder_path, upscale_factor, args.track)
 
