@@ -5,3 +5,4 @@ pytorch_msssim
 opencv-python
 numpy
 tqdm
+tensorboard
