@@ -20,7 +20,7 @@ And both models’ performances degrade with the upscale factor growing from 2 t
 ├─Datasets: Store the train, valid, and testing datasets.
 ├─images: Store the images of reconstructed pictures, training and validating curves, etc.
 ├─results: Store the trained model files. Generated antomatically when running the program.
-└─summary_writer_records: Training data records of the models saved with Tensorboard Summarywriter.
+└─summary_writer_records: Records of the training losses, validating metrics, etc. Saved with Tensorboard Summarywriter.
 ```
 The contents Dataset/ aren't contained under this repository, you need to download them manually.
 
